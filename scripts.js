@@ -1,20 +1,23 @@
 document.addEventListener('DOMContentLoaded', () => {
   const tiles = Array.from(document.querySelectorAll('.manga-tile'));
-  const grid = document.querySelector('.manga-grid');
   let current = 0;
 
-  // Add intro animation to panels
-  tiles.forEach((tile, index) => {
-    tile.style.animationDelay = `${index * 0.15}s`;
-    tile.classList.add('manga-enter');
-    
-    // Create random manga speech bubbles for fun interactive element
+  // Append edgy speech bubbles to each panel
+  tiles.forEach((tile) => {
     const bubble = document.createElement('div');
-    const texts = ['BOOM!', 'POW!', 'CLICK!', 'YEAH!', 'AWESOME!', '90s!'];
+    const texts = ['GOGOGO!!', 'ZAAAP!!', 'SHK!', 'DOOOM', 'KRAK!', 'SHT!'];
     bubble.textContent = texts[Math.floor(Math.random() * texts.length)];
     bubble.className = 'speech-bubble';
-    bubble.style.right = '-20px';
-    bubble.style.top = '-20px';
+    
+    // Position randomly on the left or the right
+    if (Math.random() > 0.5) {
+        bubble.style.right = '10%';
+    } else {
+        bubble.style.left = '10%';
+    }
+    // Random height near the top
+    bubble.style.top = Math.floor(Math.random() * 15 + 5) + '%';
+    
     tile.appendChild(bubble);
   });
 
@@ -24,15 +27,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateActiveTile(index) {
     tiles.forEach((tile, idx) => tile.classList.toggle('active', idx === index));
-    tiles[index].focus();
-  }
-
-  function runNavigation(key) {
-    if (key === 'ArrowRight') current = (current + 1) % tiles.length;
-    if (key === 'ArrowLeft') current = (current - 1 + tiles.length) % tiles.length;
-    if (key === 'ArrowDown') current = (current + 2) % tiles.length;
-    if (key === 'ArrowUp') current = (current - 2 + tiles.length) % tiles.length;
-    updateActiveTile(current);
+    if (tiles[index]) tiles[index].focus();
   }
 
   document.addEventListener('keydown', (event) => {
@@ -47,11 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    runNavigation(event.key); // simple keyboard nav logic
+    if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+        current = (current + 1) % tiles.length;
+    } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+        current = (current - 1 + tiles.length) % tiles.length;
+    }
+    updateActiveTile(current);
   });
-
-  // Action line speedlines container
-  const speedlines = document.createElement('div');
-  speedlines.className = 'speedlines';
-  document.body.appendChild(speedlines);
 });
