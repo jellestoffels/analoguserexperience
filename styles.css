@@ -145,14 +145,13 @@ body::before {
   object-fit: cover;
   filter: grayscale(100%) contrast(300%) brightness(0.6);
   opacity: 0;
-  transition: opacity 0.4s ease, filter 0.4s ease, transform 1s ease;
+  transition: opacity 0.4s ease, filter 0.4s ease;
   z-index: 0;
 }
 
 .manga-tile:hover .placeholder-img {
   opacity: 0.4;
   filter: grayscale(100%) contrast(150%) brightness(1);
-  transform: scale(1.02);
 }
 
 .manga-caption, .tile-number {
