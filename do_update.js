@@ -13,5 +13,5 @@ files.forEach(f => {
     content = content.replace('</head>', `${favicons}\n  </head>`);
     fs.writeFileSync(f, content);
   }
-});
+);
 
