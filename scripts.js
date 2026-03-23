@@ -1,12 +1,11 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Interactive Abstract Canvas
+  // Par64 Tungsten Light Simulator
   const canvas = document.createElement('canvas');
   canvas.id = 'interactive-canvas';
   document.body.insertBefore(canvas, document.body.firstChild);
   
   const ctx = canvas.getContext('2d');
   let width, height;
-  let lines = [];
   
   function resize() {
     width = canvas.width = window.innerWidth;
@@ -16,99 +15,102 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resize);
   resize();
 
-  let mouse = { x: width / 2, y: height / 2, moved: false };
+  let mouse = { x: width / 2, y: height / 2 };
+  let isDown = false;
+  let heat = 0; // Represents the tungsten glow (0.0 to 1.0)
 
-  window.addEventListener('mousemove', (e) => {
-    mouse.x = e.clientX;
-    mouse.y = e.clientY;
-    mouse.moved = true;
+  // Track interactions
+  window.addEventListener('mousedown', (e) => { 
+    isDown = true; 
+    mouse.x = e.clientX; 
+    mouse.y = e.clientY; 
+  });
+  window.addEventListener('mouseup', () => { isDown = false; });
+  window.addEventListener('mousemove', (e) => { 
+    if (isDown) {
+      mouse.x = e.clientX; 
+      mouse.y = e.clientY; 
+    }
   });
 
-  class Line {
-    constructor() {
-      this.x = Math.random() * width;
-      this.y = Math.random() * height;
-      this.vx = (Math.random() - 0.5) * 0.5;
-      this.vy = (Math.random() - 0.5) * 0.5;
-      this.history = [];
-      this.maxLength = Math.floor(Math.random() * 30 + 10);
+  // Touch support for dragging the light
+  window.addEventListener('touchstart', (e) => { 
+    isDown = true; 
+    mouse.x = e.touches[0].clientX; 
+    mouse.y = e.touches[0].clientY; 
+  }, {passive: true});
+  window.addEventListener('touchend', () => { isDown = false; });
+  window.addEventListener('touchmove', (e) => { 
+    if (isDown) {
+      mouse.x = e.touches[0].clientX; 
+      mouse.y = e.touches[0].clientY; 
     }
-    
-    update() {
-      // Move towards mouse slightly if moved
-      if (mouse.moved) {
-        let dx = mouse.x - this.x;
-        let dy = mouse.y - this.y;
-        let dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 300) {
-          this.vx += (dx / dist) * 0.02;
-          this.vy += (dy / dist) * 0.02;
-        }
-      }
-      
-      // Add chaotic noise
-      this.vx += (Math.random() - 0.5) * 0.1;
-      this.vy += (Math.random() - 0.5) * 0.1;
-      
-      // Limit speed
-      let speed = Math.sqrt(this.vx * this.vx + this.vy * this.vy);
-      if (speed > 2) {
-        this.vx = (this.vx / speed) * 2;
-        this.vy = (this.vy / speed) * 2;
-      }
-      
-      this.x += this.vx;
-      this.y += this.vy;
-      
-      // Bounce
-      if (this.x < 0 || this.x > width) this.vx *= -1;
-      if (this.y < 0 || this.y > height) this.vy *= -1;
-      
-      this.history.push({x: this.x, y: this.y});
-      if (this.history.length > this.maxLength) {
-        this.history.shift();
-      }
-    }
-    
-    draw() {
-      if (this.history.length === 0) return;
-      ctx.beginPath();
-      ctx.moveTo(this.history[0].x, this.history[0].y);
-      for (let i = 1; i < this.history.length; i++) {
-        ctx.lineTo(this.history[i].x, this.history[i].y);
-      }
-      ctx.strokeStyle = '#e6e4e0'; // Ink color
-      ctx.lineWidth = 0.5;
-      ctx.stroke();
-    }
+  }, {passive: true});
+
+  // Tungsten color decay profile
+  function mixColor(c1, c2, t) {
+    return {
+      r: Math.round(c1.r + (c2.r - c1.r) * t),
+      g: Math.round(c1.g + (c2.g - c1.g) * t),
+      b: Math.round(c1.b + (c2.b - c1.b) * t),
+      a: c1.a + (c2.a - c1.a) * t
+    };
   }
 
-  for (let i = 0; i < 40; i++) {
-    lines.push(new Line());
+  // 5 milestones of a tungsten filament cooling down
+  const colors = [
+    { r: 0,   g: 0,   b: 0,   a: 0 },       // 0: Off / Darkness
+    { r: 60,  g: 10,  b: 0,   a: 0.15 },    // 1: Very dim red residual glow
+    { r: 230, g: 60,  b: 10,  a: 0.5 },     // 2: Deep analog orange
+    { r: 255, g: 170, b: 50,  a: 0.8 },     // 3: Warm yellow-orange wash
+    { r: 255, g: 250, b: 240, a: 1.0 }      // 4: Blinding hot warm-white
+  ];
+
+  function getColor(h) {
+    if (h <= 0) return colors[0];
+    if (h >= 1) return colors[4];
+    let scaled = h * 4;
+    let index = Math.floor(scaled);
+    let t = scaled - index;
+    return mixColor(colors[index], colors[index+1], t);
   }
 
+  // Main render loop
   function render() {
     ctx.clearRect(0, 0, width, height);
-    for (let i = 0; i < lines.length; i++) {
-      lines[i].update();
-      lines[i].draw();
+
+    // Physics for tungsten heat string
+    if (isDown) {
+      heat += 0.04;      // Power on: reaches max brightness in ~0.4s
+      if (heat > 1) heat = 1;
+    } else {
+      heat -= 0.0035;    // Power off: long residual fade for ~4.5 seconds
+      if (heat < 0) heat = 0;
     }
-    
-    // Draw abstract geometric tracking cursor
-    if (mouse.moved) {
-      ctx.beginPath();
-      ctx.moveTo(mouse.x - 20, mouse.y);
-      ctx.lineTo(mouse.x + 20, mouse.y);
-      ctx.moveTo(mouse.x, mouse.y - 20);
-      ctx.lineTo(mouse.x, mouse.y + 20);
-      ctx.strokeStyle = '#777777';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+
+    if (heat > 0) {
+      // Calculate active color from the profile
+      const core = getColor(heat);
       
-      ctx.beginPath();
-      ctx.arc(mouse.x, mouse.y, Math.random() * 5 + 5, 0, Math.PI * 2);
-      ctx.strokeStyle = '#e6e4e0';
-      ctx.stroke();
+      // Calculate beam spread mapping (intensity widens the beam)
+      // Base radius is relatively large to illuminate the "page"
+      const radius = Math.max(width, height) * (0.4 + (heat * 0.4));
+      const midRadius = radius * 0.4;
+      const innerRadius = radius * 0.05;
+
+      const grad = ctx.createRadialGradient(mouse.x, mouse.y, innerRadius, mouse.x, mouse.y, radius);
+      
+      // Core hot spot
+      grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
+      // Mid-field wash (drops opacity and favors red/orange naturally)
+      grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
+      // Outer light falloff fading into the void
+      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+      // Screen blend pushes the light over the dark grinds heavily
+      ctx.globalCompositeOperation = 'screen';
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
     }
 
     requestAnimationFrame(render);

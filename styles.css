@@ -130,7 +130,7 @@ body::before {
   width: 100vw; height: 100vh;
   z-index: 0;
   pointer-events: none;
-  opacity: 0.3;
+  opacity: 1; mix-blend-mode: screen;
 }
 
 /* Gritty image handling */
