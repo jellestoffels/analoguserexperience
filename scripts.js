@@ -38,6 +38,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Restore selector state if present
+  const fixtureSelector = document.getElementById('fixture-selector');
+  if (fixtureSelector) {
+    const savedFixture = sessionStorage.getItem('analogFixture');
+    if (savedFixture) {
+      fixtureSelector.value = savedFixture;
+    }
+    fixtureSelector.addEventListener('mousedown', (e) => e.stopPropagation());
+    fixtureSelector.addEventListener('change', () => {
+      sessionStorage.setItem('analogFixture', fixtureSelector.value);
+    });
+  }
+
   // Save state on navigation
   window.addEventListener('beforeunload', () => {
     sessionStorage.setItem('analogInteracted', hasInteracted.toString());
@@ -45,6 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
     sessionStorage.setItem('analogX', mouse.x.toString());
     sessionStorage.setItem('analogY', mouse.y.toString());
     sessionStorage.setItem('analogTime', Date.now().toString());
+    if (fixtureSelector) {
+      sessionStorage.setItem('analogFixture', fixtureSelector.value);
+    }
   });
 
   // Track interactions
@@ -131,47 +147,73 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Heat and Radius Physics 
     if (!hasInteracted) {
-      // Hint animation: wandering subtle pulse
       let time = Date.now() * 0.002;
       mouse.x = width / 2 + Math.sin(time * 0.7) * (width * 0.15);
       mouse.y = height / 2 + Math.cos(time * 0.5) * (height * 0.15);
       heat = 0.25 + Math.sin(time * 1.5) * 0.1; 
       currentTargetRadiusMultiplier = 0.2;
     } else {
-      // User manual control
       if (isDown) {
         heat += 0.04;
         if (heat > 1) heat = 1;
         currentTargetRadiusMultiplier = 0.4 + (heat * 0.4);
       } else if (isHoveringBlock) {
-        if (heat < 0.5) heat += 0.02;        // Warm up to warm yellow
-        else if (heat > 0.5) heat -= 0.0035; // Cool down to warm yellow if hotter
-        currentTargetRadiusMultiplier = 0.18; // Tighter glow around the block
+        if (heat < 0.5) heat += 0.02;     
+        else if (heat > 0.5) heat -= 0.0035; 
+        currentTargetRadiusMultiplier = 0.18; 
       } else {
-        heat -= 0.0035; // Power off decay
+        heat -= 0.0035; 
         if (heat < 0) heat = 0;
         currentTargetRadiusMultiplier = 0.4 + (heat * 0.4);
       }
     }
 
-    // Smooth radius transition
     currentRadiusMultiplier += (currentTargetRadiusMultiplier - currentRadiusMultiplier) * 0.1;
 
     if (heat > 0) {
       const core = getColor(heat);
       
-      const radius = Math.max(width, height) * currentRadiusMultiplier;
-      const innerRadius = radius * 0.05;
+      const activeFixture = sessionStorage.getItem('analogFixture') || 'par64';
+      let bulbs = [];
+      let baseR = Math.max(width, height) * currentRadiusMultiplier;
+      let spacing = baseR * 0.25;
 
-      const grad = ctx.createRadialGradient(mouse.x, mouse.y, innerRadius, mouse.x, mouse.y, radius);
-      
-      grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
-      grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
-      grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+      if (activeFixture === '2-cell') {
+        bulbs.push({dx: -spacing/2, dy: 0, r: baseR * 0.7});
+        bulbs.push({dx: spacing/2, dy: 0, r: baseR * 0.7});
+      } else if (activeFixture === '4-cell') {
+        bulbs.push({dx: -spacing/2, dy: -spacing/2, r: baseR * 0.6});
+        bulbs.push({dx: spacing/2, dy: -spacing/2, r: baseR * 0.6});
+        bulbs.push({dx: -spacing/2, dy: spacing/2, r: baseR * 0.6});
+        bulbs.push({dx: spacing/2, dy: spacing/2, r: baseR * 0.6});
+      } else if (activeFixture === 'fourbar') {
+        let s = spacing * 1.5;
+        bulbs.push({dx: -s*1.5, dy: 0, r: baseR * 0.75});
+        bulbs.push({dx: -s*0.5, dy: 0, r: baseR * 0.75});
+        bulbs.push({dx: s*0.5, dy: 0, r: baseR * 0.75});
+        bulbs.push({dx: s*1.5, dy: 0, r: baseR * 0.75});
+      } else if (activeFixture === 'svoboda') {
+        let s = spacing * 0.8;
+        for(let i=0; i<9; i++) {
+          bulbs.push({dx: (i - 4) * s, dy: 0, r: baseR * 0.5});
+        }
+      } else { // 'par64'
+        bulbs.push({dx: 0, dy: 0, r: baseR});
+      }
 
       ctx.globalCompositeOperation = 'screen';
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, width, height);
+      
+      bulbs.forEach(b => {
+        const innerRadius = b.r * 0.05;
+        const grad = ctx.createRadialGradient(mouse.x + b.dx, mouse.y + b.dy, innerRadius, mouse.x + b.dx, mouse.y + b.dy, b.r);
+        
+        grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
+        grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
+        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, width, height); 
+      });
     }
 
     requestAnimationFrame(render);
