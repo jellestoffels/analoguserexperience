@@ -194,9 +194,19 @@ document.addEventListener('DOMContentLoaded', () => {
   let targetRadius = 0.2;
 
   // Main render loop
+  let frameCount = 0;
   function render() {
+    frameCount++;
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(11, 11, 11, 0.02)'; // Decays to #0b0b0b (the background color) with slow fade
+    
+    // We use a small base decay of 0.03 for slow fading
+    // To prevent 8-bit canvas rounding stall and burn-in, we use 0.08 every few frames
+    if (frameCount % 10 === 0) {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.08)'; 
+    } else {
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.03)'; 
+    }
+    
     ctx.fillRect(0, 0, width, height);
 
     let currentTargetRadiusMultiplier = targetRadius;
