@@ -197,7 +197,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function render() {
     // Fade out previous frames to create the trail without burn-in
     ctx.globalCompositeOperation = 'destination-out';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)'; 
+    // Increase fade speed when light is off to ensure full clear and avoid stuck pixels
+    const fadeSpeed = (heat <= 0.01) ? 0.2 : 0.08;
+    ctx.fillStyle = `rgba(0, 0, 0, ${fadeSpeed})`;
     ctx.fillRect(0, 0, width, height);
 
     let currentTargetRadiusMultiplier = targetRadius;
@@ -276,15 +278,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const innerRadius = b.r * 0.05;
         const grad = ctx.createRadialGradient(mouse.x + b.dx, mouse.y + b.dy, innerRadius, mouse.x + b.dx, mouse.y + b.dy, b.r);
         
+        // Use consistent color values for outer edge to prevent banding
+        const edgeR = Math.floor(core.r);
+        const edgeG = Math.floor(core.g * 0.6);
+        const edgeB = Math.floor(core.b * 0.3);
+
         if (b.isSvoboda) {
           grad.addColorStop(0, `rgba(0, 0, 0, ${core.a})`); // Blocked center
           grad.addColorStop(0.15, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`); // Inner rim
-          grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
-          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          grad.addColorStop(0.3, `rgba(${edgeR}, ${edgeG}, ${edgeB}, ${core.a * 0.6})`);
+          grad.addColorStop(1, `rgba(${edgeR}, ${edgeG}, ${edgeB}, 0)`);
         } else {
           grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
-          grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
-          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+          grad.addColorStop(0.3, `rgba(${edgeR}, ${edgeG}, ${edgeB}, ${core.a * 0.6})`);
+          grad.addColorStop(1, `rgba(${edgeR}, ${edgeG}, ${edgeB}, 0)`);
         }
 
         ctx.fillStyle = grad;
