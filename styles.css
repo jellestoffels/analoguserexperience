@@ -9,8 +9,17 @@
 
 * { box-sizing: border-box; }
 
-html { background-color: var(--bg); }
+html { 
+  background-color: black; 
+  animation: htmlBgToNormal 0.5s ease-out forwards; 
+}
+@keyframes htmlBgToNormal {
+  0% { background-color: black; }
+  100% { background-color: var(--bg); }
+}
+
 body {
+  animation: pageContentFadeIn 0.5s ease-out forwards;
   margin: 0; padding: 0;
   background-color: var(--bg);
   color: var(--ink);
@@ -19,6 +28,10 @@ body {
   line-height: 1.4;
   overflow-x: hidden;
   cursor: crosshair;
+}
+@keyframes pageContentFadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
 }
 
 /* Heavy, gritty noise covering the entire document */

@@ -17,16 +17,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('pageshow', (e) => {
     if (e.persisted) {
-      document.querySelectorAll('.manga-tile').forEach(tile => {
-        tile.style.transition = '';
-        tile.style.borderColor = '';
-        const img = tile.querySelector('.placeholder-img');
-        if (img) {
-          img.style.transition = '';
-          img.style.filter = '';
-          img.style.opacity = '';
-        }
-      });
+      document.querySelectorAll('.page-transition-clone').forEach(el => el.remove());
+      // Re-trigger the page fade in and background CSS animations if desired,
+      // or just remove the clones, so the page is visible and active again.
     }
   });
 
@@ -117,23 +110,48 @@ document.addEventListener('DOMContentLoaded', () => {
       markInteraction(); 
       
       const href = el.getAttribute('href');
-      // Apply the fade transition if it's a manga-tile navigating to a new page
+      // Apply the expanding transition if it's a manga-tile navigating to a new page
       if (el.classList.contains('manga-tile') && href && href !== '#') {
         e.preventDefault();
         
-        el.style.transition = 'all 0.3s ease';
-        el.style.borderColor = 'transparent';
+        const rect = el.getBoundingClientRect();
+        const clone = el.cloneNode(true);
+        clone.classList.add('page-transition-clone');
+        document.body.appendChild(clone);
         
-        const img = el.querySelector('.placeholder-img');
+        clone.style.pointerEvents = 'none';
+        clone.style.position = 'fixed';
+        clone.style.top = rect.top + 'px';
+        clone.style.left = rect.left + 'px';
+        clone.style.width = rect.width + 'px';
+        clone.style.height = rect.height + 'px';
+        clone.style.zIndex = '999999';
+        clone.style.margin = '0';
+        clone.style.transition = 'all 0.5s cubic-bezier(0.8, 0, 0.2, 1)';
+        
+        const img = clone.querySelector('.placeholder-img');
         if (img) {
-          img.style.transition = 'all 0.3s ease';
-          img.style.filter = 'brightness(0) grayscale(100%)';
+          img.style.transition = 'opacity 0.5s ease';
+        }
+        
+        // Force reflow
+        clone.getBoundingClientRect();
+        
+        // Expand to fill the screen while dimming to black
+        clone.style.top = '0px';
+        clone.style.left = '0px';
+        clone.style.width = '100vw';
+        clone.style.height = '100vh';
+        clone.style.backgroundColor = 'black';
+        clone.style.borderColor = 'black';
+        
+        if (img) {
           img.style.opacity = '0';
         }
         
         setTimeout(() => {
           window.location.href = href;
-        }, 300);
+        }, 500);
       }
     });
     el.addEventListener('mouseenter', () => { 
@@ -178,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Main render loop
   function render() {
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+    ctx.fillStyle = 'rgba(11, 11, 11, 0.02)'; // Decays to #0b0b0b (the background color) with slow fade
     ctx.fillRect(0, 0, width, height);
 
     let currentTargetRadiusMultiplier = targetRadius;
