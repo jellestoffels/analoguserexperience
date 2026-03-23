@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-  // Par64 Tungsten Light Simulator
+  // Par64 Tungsten Light Simulator & Stateful Interactions
   const canvas = document.createElement('canvas');
   canvas.id = 'interactive-canvas';
   document.body.insertBefore(canvas, document.body.firstChild);
@@ -17,35 +17,82 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let mouse = { x: width / 2, y: height / 2 };
   let isDown = false;
+  let isHoveringBlock = false;
+  
+  // State persistence across pages
+  let hasInteracted = sessionStorage.getItem('analogInteracted') === 'true';
   let heat = 0; // Represents the tungsten glow (0.0 to 1.0)
+  
+  let savedHeat = parseFloat(sessionStorage.getItem('analogHeat'));
+  let savedTime = parseInt(sessionStorage.getItem('analogTime'));
+  if (!isNaN(savedHeat) && !isNaN(savedTime) && savedHeat > 0) {
+    let elapsedMs = Date.now() - savedTime;
+    let heatLoss = (elapsedMs / 16) * 0.0035; // simulate frame drop decay
+    heat = Math.max(0, savedHeat - heatLoss);
+    
+    let savedX = parseFloat(sessionStorage.getItem('analogX'));
+    let savedY = parseFloat(sessionStorage.getItem('analogY'));
+    if (!isNaN(savedX) && !isNaN(savedY)) {
+      mouse.x = savedX;
+      mouse.y = savedY;
+    }
+  }
+
+  // Save state on navigation
+  window.addEventListener('beforeunload', () => {
+    sessionStorage.setItem('analogInteracted', hasInteracted.toString());
+    sessionStorage.setItem('analogHeat', heat.toString());
+    sessionStorage.setItem('analogX', mouse.x.toString());
+    sessionStorage.setItem('analogY', mouse.y.toString());
+    sessionStorage.setItem('analogTime', Date.now().toString());
+  });
 
   // Track interactions
+  const markInteraction = () => { hasInteracted = true; };
+
   window.addEventListener('mousedown', (e) => { 
     isDown = true; 
+    markInteraction();
     mouse.x = e.clientX; 
     mouse.y = e.clientY; 
   });
   window.addEventListener('mouseup', () => { isDown = false; });
   window.addEventListener('mousemove', (e) => { 
-    if (isDown) {
+    if (isDown || isHoveringBlock) {
       mouse.x = e.clientX; 
       mouse.y = e.clientY; 
     }
   });
 
-  // Touch support for dragging the light
+  // Touch support
   window.addEventListener('touchstart', (e) => { 
     isDown = true; 
+    markInteraction();
     mouse.x = e.touches[0].clientX; 
     mouse.y = e.touches[0].clientY; 
   }, {passive: true});
   window.addEventListener('touchend', () => { isDown = false; });
   window.addEventListener('touchmove', (e) => { 
-    if (isDown) {
+    if (isDown || isHoveringBlock) {
       mouse.x = e.touches[0].clientX; 
       mouse.y = e.touches[0].clientY; 
     }
   }, {passive: true});
+
+  // Block Hover bindings
+  document.querySelectorAll('a, button, .manga-tile').forEach(el => {
+    el.addEventListener('click', () => { 
+      heat = 1.0; 
+      markInteraction(); 
+    });
+    el.addEventListener('mouseenter', () => { 
+      isHoveringBlock = true; 
+      markInteraction(); 
+    });
+    el.addEventListener('mouseleave', () => { 
+      isHoveringBlock = false; 
+    });
+  });
 
   // Tungsten color decay profile
   function mixColor(c1, c2, t) {
@@ -57,7 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
-  // 5 milestones of a tungsten filament cooling down
   const colors = [
     { r: 0,   g: 0,   b: 0,   a: 0 },       // 0: Off / Darkness
     { r: 60,  g: 10,  b: 0,   a: 0.15 },    // 1: Very dim red residual glow
@@ -75,39 +121,54 @@ document.addEventListener('DOMContentLoaded', () => {
     return mixColor(colors[index], colors[index+1], t);
   }
 
+  let currentRadiusMultiplier = 0.4;
+
   // Main render loop
   function render() {
     ctx.clearRect(0, 0, width, height);
 
-    // Physics for tungsten heat string
-    if (isDown) {
-      heat += 0.04;      // Power on: reaches max brightness in ~0.4s
-      if (heat > 1) heat = 1;
+    let currentTargetRadiusMultiplier = 0.4;
+
+    // Heat and Radius Physics 
+    if (!hasInteracted) {
+      // Hint animation: wandering subtle pulse
+      let time = Date.now() * 0.002;
+      mouse.x = width / 2 + Math.sin(time * 0.7) * (width * 0.15);
+      mouse.y = height / 2 + Math.cos(time * 0.5) * (height * 0.15);
+      heat = 0.25 + Math.sin(time * 1.5) * 0.1; 
+      currentTargetRadiusMultiplier = 0.2;
     } else {
-      heat -= 0.0035;    // Power off: long residual fade for ~4.5 seconds
-      if (heat < 0) heat = 0;
+      // User manual control
+      if (isDown) {
+        heat += 0.04;
+        if (heat > 1) heat = 1;
+        currentTargetRadiusMultiplier = 0.4 + (heat * 0.4);
+      } else if (isHoveringBlock) {
+        if (heat < 0.5) heat += 0.02;        // Warm up to warm yellow
+        else if (heat > 0.5) heat -= 0.0035; // Cool down to warm yellow if hotter
+        currentTargetRadiusMultiplier = 0.18; // Tighter glow around the block
+      } else {
+        heat -= 0.0035; // Power off decay
+        if (heat < 0) heat = 0;
+        currentTargetRadiusMultiplier = 0.4 + (heat * 0.4);
+      }
     }
 
+    // Smooth radius transition
+    currentRadiusMultiplier += (currentTargetRadiusMultiplier - currentRadiusMultiplier) * 0.1;
+
     if (heat > 0) {
-      // Calculate active color from the profile
       const core = getColor(heat);
       
-      // Calculate beam spread mapping (intensity widens the beam)
-      // Base radius is relatively large to illuminate the "page"
-      const radius = Math.max(width, height) * (0.4 + (heat * 0.4));
-      const midRadius = radius * 0.4;
+      const radius = Math.max(width, height) * currentRadiusMultiplier;
       const innerRadius = radius * 0.05;
 
       const grad = ctx.createRadialGradient(mouse.x, mouse.y, innerRadius, mouse.x, mouse.y, radius);
       
-      // Core hot spot
       grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
-      // Mid-field wash (drops opacity and favors red/orange naturally)
       grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
-      // Outer light falloff fading into the void
       grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
 
-      // Screen blend pushes the light over the dark grinds heavily
       ctx.globalCompositeOperation = 'screen';
       ctx.fillStyle = grad;
       ctx.fillRect(0, 0, width, height);
