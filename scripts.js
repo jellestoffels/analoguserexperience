@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { r: 60,  g: 10,  b: 0,   a: 0.15 },    // 1: Very dim red residual glow
     { r: 230, g: 60,  b: 10,  a: 0.5 },     // 2: Deep analog orange
     { r: 255, g: 170, b: 50,  a: 0.8 },     // 3: Warm yellow-orange wash
-    { r: 255, g: 250, b: 240, a: 1.0 }      // 4: Blinding hot warm-white
+    { r: 255, g: 220, b: 160, a: 1.0 }      // 4: Blinding hot warm-white
   ];
 
   function getColor(h) {
@@ -192,19 +192,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentRadiusMultiplier = 0.2;
   let targetRadius = 0.2;
+  let idleFrames = 0;
 
   // Main render loop
   function render() {
     // 1. CLEARING LOGIC
-    // If we have minimal heat, force a full clear to fix the background persisting issue.
-    // Otherwise, use destination-out to create trails.
-    if (heat <= 0.001) {
+    // Use destination-out to create trails.
+    // We only hard clear (clearRect) after the light has been off for a moment
+    // to ensure all trails have faded naturally without snapping.
+    if (heat <= 0 && idleFrames > 5) {
       ctx.clearRect(0, 0, width, height);
     } else {
       ctx.globalCompositeOperation = 'destination-out';
-      // Use a consistent fade speed for trails
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; 
+      // Use a consistent fade speed for trails, slightly faster when light is off
+      const fadeSpeed = (heat <= 0.01) ? 0.2 : 0.08;
+      ctx.fillStyle = `rgba(0, 0, 0, ${fadeSpeed})`;
       ctx.fillRect(0, 0, width, height);
+    }
+
+    if (heat <= 0) {
+      idleFrames++;
+    } else {
+      idleFrames = 0;
     }
 
     let currentTargetRadiusMultiplier = targetRadius;
