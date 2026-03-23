@@ -158,9 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (heat > 1) heat = 1;
         currentTargetRadiusMultiplier = 0.4 + (heat * 0.4);
       } else if (isHoveringBlock) {
-        if (heat < 0.5) heat += 0.02;     
+        if (heat < 0.5) heat += 0.008;     
         else if (heat > 0.5) heat -= 0.0035; 
-        currentTargetRadiusMultiplier = 0.18; 
+        currentTargetRadiusMultiplier = 0.22; 
       } else {
         heat -= 0.0035; 
         if (heat < 0) heat = 0;

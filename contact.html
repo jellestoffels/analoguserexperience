@@ -9,19 +9,42 @@
   </head>
   <body>
     <main class="site-shell">
-      <div class="japanese-accent">コンタクト // 04</div>
       <header class="page-header">
         <a class="back" href="index.html">← INDEX</a>
-        <h1 class="page-title">CONTACT</h1>
+        <h1 class="page-title" style="font-size: clamp(2rem, 5vw, 4rem); font-weight: 300; text-transform: lowercase; margin: 0;">contact</h1>
       </header>
       
-      <section class="content-void">
+      <section class="content-void" style="display: grid; grid-template-columns: 1fr 1fr; gap: 4vw; margin-top: 4vh;">
         <div>
-           <img src="https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=800&q=80" alt="Contact banner" class="content-image">
+           <img src="https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d?w=800&q=80" alt="Contact banner" class="content-image" style="width: 100%; aspect-ratio: 4/5; object-fit: cover; filter: grayscale(100%) contrast(250%) brightness(0.7); border: var(--line) solid var(--ink);">
         </div>
-        <div class="content-text">
-          <p>Reach out to initiate a protocol.</p>
-          <p><a href="mailto:hello@analoguserexperience.com">hello@analoguserexperience.com</a></p>
+        <div class="content-text" style="font-size: clamp(1rem, 1.5vw, 1.25rem); display: flex; flex-direction: column; gap: 2rem;">
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;">Email</div>
+            <a href="mailto:hello@example.com" style="color: var(--ink); text-decoration: none;">hello@example.com</a>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;">Phone / WhatsApp</div>
+            <a href="tel:+1234567890" style="color: var(--ink); text-decoration: none;">+1 (234) 567-890</a>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;">Telegram</div>
+            <a href="https://t.me/placeholder" style="color: var(--ink); text-decoration: none;">@placeholder_tg</a>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;">Socials</div>
+            <a href="#" style="color: var(--ink); text-decoration: none; display: block;">Instagram</a>
+            <a href="#" style="color: var(--ink); text-decoration: none; display: block;">Twitter</a>
+            <a href="#" style="color: var(--ink); text-decoration: none; display: block;">LinkedIn</a>
+          </div>
+          <div>
+            <div style="font-size: 0.75rem; text-transform: uppercase; color: var(--ink-dim); letter-spacing: 0.1em; margin-bottom: 0.5rem;">Address</div>
+            <address style="color: var(--ink); font-style: normal; line-height: 1.6;">
+              123 Analog Street<br/>
+              Void District, Floor 9<br/>
+              10101 City, Country
+            </address>
+          </div>
         </div>
       </section>
     </main>
