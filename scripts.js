@@ -323,3 +323,19 @@ lightboxOverlay.addEventListener('click', (e) => {
     lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
   }
 });
+
+document.addEventListener('keydown', (e) => {
+  if (lightboxOverlay.style.display === 'flex') {
+    if (e.key === 'ArrowLeft') {
+      carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length;
+      lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+    } else if (e.key === 'ArrowRight') {
+      carouselIndex = (carouselIndex + 1) % carouselImages.length;
+      lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+    } else if (e.key === 'Escape') {
+      lightboxOverlay.style.opacity = '0';
+      setTimeout(() => { lightboxOverlay.style.display = 'none'; }, 300);
+    }
+  }
+});
+
