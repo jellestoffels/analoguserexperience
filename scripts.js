@@ -195,12 +195,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Main render loop
   function render() {
-    // Fade out previous frames to create the trail without burn-in
-    ctx.globalCompositeOperation = 'destination-out';
-    // Increase fade speed when light is off to ensure full clear and avoid stuck pixels
-    const fadeSpeed = (heat <= 0.01) ? 0.2 : 0.08;
-    ctx.fillStyle = `rgba(0, 0, 0, ${fadeSpeed})`;
-    ctx.fillRect(0, 0, width, height);
+    // 1. CLEARING LOGIC
+    // If we have minimal heat, force a full clear to fix the background persisting issue.
+    // Otherwise, use destination-out to create trails.
+    if (heat <= 0.001) {
+      ctx.clearRect(0, 0, width, height);
+    } else {
+      ctx.globalCompositeOperation = 'destination-out';
+      // Use a consistent fade speed for trails
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.1)'; 
+      ctx.fillRect(0, 0, width, height);
+    }
 
     let currentTargetRadiusMultiplier = targetRadius;
 
@@ -278,20 +283,40 @@ document.addEventListener('DOMContentLoaded', () => {
         const innerRadius = b.r * 0.05;
         const grad = ctx.createRadialGradient(mouse.x + b.dx, mouse.y + b.dy, innerRadius, mouse.x + b.dx, mouse.y + b.dy, b.r);
         
-        // Use consistent color values for outer edge to prevent banding
-        const edgeR = Math.floor(core.r);
-        const edgeG = Math.floor(core.g * 0.6);
-        const edgeB = Math.floor(core.b * 0.3);
+        // 2. GRADIENT BANDING FIX
+        // Keep the R, G, B channels constant across the gradient. Only vary Alpha.
+        // This prevents the browser from interpolating colors (e.g. Orange -> Black),
+        // which causes gray/muddy banding in 'screen' or 'add' mode.
+        // Instead, we fade from Orange(Alpha 1) -> Orange(Alpha 0).
 
+        // Base color components
+        const cr = Math.floor(core.r);
+        const cg = Math.floor(core.g);
+        const cb = Math.floor(core.b);
+        
         if (b.isSvoboda) {
-          grad.addColorStop(0, `rgba(0, 0, 0, ${core.a})`); // Blocked center
-          grad.addColorStop(0.15, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`); // Inner rim
-          grad.addColorStop(0.3, `rgba(${edgeR}, ${edgeG}, ${edgeB}, ${core.a * 0.6})`);
-          grad.addColorStop(1, `rgba(${edgeR}, ${edgeG}, ${edgeB}, 0)`);
+           // Svoboda: Blocked center (black hole), then light rim, then fade out
+           // Center stop: black (alpha depends on heat)
+           grad.addColorStop(0, `rgba(0, 0, 0, ${core.a})`);
+           
+           // Inner rim: Full color
+           grad.addColorStop(0.15, `rgba(${cr}, ${cg}, ${cb}, ${core.a})`);
+           
+           // Mid: Full color, slightly lower alpha
+           grad.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, ${core.a * 0.6})`);
+           
+           // End: Full color, 0 alpha
+           grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
         } else {
-          grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
-          grad.addColorStop(0.3, `rgba(${edgeR}, ${edgeG}, ${edgeB}, ${core.a * 0.6})`);
-          grad.addColorStop(1, `rgba(${edgeR}, ${edgeG}, ${edgeB}, 0)`);
+           // Standard Par: Center hotspot -> fade out
+           // Center
+           grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${core.a})`);
+           
+           // Mid
+           grad.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, ${core.a * 0.6})`);
+           
+           // End
+           grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
         }
 
         ctx.fillStyle = grad;
