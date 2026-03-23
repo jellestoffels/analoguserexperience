@@ -15,6 +15,21 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('resize', resize);
   resize();
 
+  window.addEventListener('pageshow', (e) => {
+    if (e.persisted) {
+      document.querySelectorAll('.manga-tile').forEach(tile => {
+        tile.style.transition = '';
+        tile.style.borderColor = '';
+        const img = tile.querySelector('.placeholder-img');
+        if (img) {
+          img.style.transition = '';
+          img.style.filter = '';
+          img.style.opacity = '';
+        }
+      });
+    }
+  });
+
   let mouse = { x: width / 2, y: height / 2 };
   let isDown = false;
   let isHoveringBlock = false;
@@ -102,39 +117,23 @@ document.addEventListener('DOMContentLoaded', () => {
       markInteraction(); 
       
       const href = el.getAttribute('href');
-      // Apply the expanding transition if it's a manga-tile navigating to a new page
+      // Apply the fade transition if it's a manga-tile navigating to a new page
       if (el.classList.contains('manga-tile') && href && href !== '#') {
         e.preventDefault();
-        const rect = el.getBoundingClientRect();
-        const clone = el.cloneNode(true);
-        document.body.appendChild(clone);
         
-        // Remove hover effects on clone
-        clone.style.pointerEvents = 'none';
+        el.style.transition = 'all 0.3s ease';
+        el.style.borderColor = 'transparent';
         
-        // Position exactly over the original
-        clone.style.position = 'fixed';
-        clone.style.top = rect.top + 'px';
-        clone.style.left = rect.left + 'px';
-        clone.style.width = rect.width + 'px';
-        clone.style.height = rect.height + 'px';
-        clone.style.zIndex = '999999';
-        clone.style.margin = '0';
-        clone.style.transition = 'all 0.5s cubic-bezier(0.8, 0, 0.2, 1)';
-        
-        // Force reflow
-        clone.getBoundingClientRect();
-        
-        // Expand to fill screen
-        clone.style.top = '0px';
-        clone.style.left = '0px';
-        clone.style.width = '100vw';
-        clone.style.height = '100vh';
-        clone.style.borderColor = 'transparent';
+        const img = el.querySelector('.placeholder-img');
+        if (img) {
+          img.style.transition = 'all 0.3s ease';
+          img.style.filter = 'brightness(0) grayscale(100%)';
+          img.style.opacity = '0';
+        }
         
         setTimeout(() => {
           window.location.href = href;
-        }, 450);
+        }, 300);
       }
     });
     el.addEventListener('mouseenter', () => { 
@@ -173,13 +172,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return mixColor(colors[index], colors[index+1], t);
   }
 
-  let currentRadiusMultiplier = 0.4;
-  let targetRadius = 0.4;
+  let currentRadiusMultiplier = 0.2;
+  let targetRadius = 0.2;
 
   // Main render loop
   function render() {
     ctx.globalCompositeOperation = 'source-over';
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
     ctx.fillRect(0, 0, width, height);
 
     let currentTargetRadiusMultiplier = targetRadius;
@@ -190,17 +189,17 @@ document.addEventListener('DOMContentLoaded', () => {
       mouse.x = width / 2 + Math.sin(time * 0.7) * (width * 0.15);
       mouse.y = height / 2 + Math.cos(time * 0.5) * (height * 0.15);
       heat = 0.25 + Math.sin(time * 1.5) * 0.1; 
-      currentTargetRadiusMultiplier = 0.2;
+      currentTargetRadiusMultiplier = 0.1;
     } else {
       if (isDown) {
         heat += 0.04;
         if (heat > 1) heat = 1;
-        targetRadius = 0.4 + (heat * 0.4);
+        targetRadius = 0.2 + (heat * 0.2);
         currentTargetRadiusMultiplier = targetRadius;
       } else if (isHoveringBlock) {
         if (heat < 0.5) heat += 0.008;     
         else if (heat > 0.5) heat -= 0.0035; 
-        targetRadius = 0.22; 
+        targetRadius = 0.11; 
         currentTargetRadiusMultiplier = targetRadius;
       } else {
         heat -= 0.0035; 
