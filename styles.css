@@ -393,7 +393,7 @@ select.vj-selector:hover {
 }
 
 .interlock-item:hover img {
-  filter: grayscale(100%) contrast(120%) brightness(1);
+  filter: grayscale(0%) contrast(100%) brightness(1);
 }
 
 .interlock-item:nth-child(3n+1) {
@@ -412,3 +412,42 @@ select.vj-selector:hover {
     grid-column: span 1;
   }
 }
+
+/* Lightbox Stylings */
+#lightbox-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(11, 11, 11, 0.4);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 100000;
+  display: none; /* Controlled via JS */
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.lightbox-img {
+  max-width: 80vw;
+  max-height: 80vh;
+  object-fit: contain;
+  box-shadow: 0 0 40px rgba(0,0,0,0.5);
+  border: var(--line) solid var(--ink);
+}
+
+.lightbox-prev, .lightbox-next, .lightbox-close {
+  position: absolute;
+  color: var(--ink);
+  font-size: 2rem;
+  font-weight: 300;
+  cursor: pointer;
+  user-select: none;
+  padding: 2rem;
+  z-index: 100001;
+  mix-blend-mode: difference;
+}
+
+.lightbox-prev { left: 2vw; }
+.lightbox-next { right: 2vw; }
+.lightbox-close { top: 2vw; right: 2vw; font-size: 1.5rem; }
