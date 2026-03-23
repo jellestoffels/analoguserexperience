@@ -177,17 +177,18 @@ document.addEventListener('DOMContentLoaded', () => {
       let bulbs = [];
       let baseR = Math.max(width, height) * currentRadiusMultiplier;
       let spacing = baseR * 0.25;
+      let spacingscale = 1.3;
 
       if (activeFixture === '2-cell') {
-        bulbs.push({dx: -spacing/1.5, dy: 0, r: baseR * 0.45});
-        bulbs.push({dx: spacing/1.5, dy: 0, r: baseR * 0.45});
+        bulbs.push({dx: -spacing/spacingscale, dy: 0, r: baseR * 0.45});
+        bulbs.push({dx: spacing/spacingscale, dy: 0, r: baseR * 0.45});
       } else if (activeFixture === '4-cell') {
-        bulbs.push({dx: -spacing/1.5, dy: -spacing/1.5, r: baseR * 0.45});
-        bulbs.push({dx: spacing/1.5, dy: -spacing/1.5, r: baseR * 0.45});
-        bulbs.push({dx: -spacing/1.5, dy: spacing/1.5, r: baseR * 0.45});
-        bulbs.push({dx: spacing/1.5, dy: spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: -spacing/spacingscale, dy: -spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: spacing/spacingscale, dy: -spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: -spacing/spacingscale, dy: spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: spacing/spacingscale, dy: spacing/1.5, r: baseR * 0.45});
       } else if (activeFixture === 'fourbar') {
-        let s = spacing * 1.5;
+        let s = spacing * 1.5
         bulbs.push({dx: -s*1.5, dy: 0, r: baseR * 0.75});
         bulbs.push({dx: -s*0.5, dy: 0, r: baseR * 0.75});
         bulbs.push({dx: s*0.5, dy: 0, r: baseR * 0.75});
