@@ -179,13 +179,13 @@ document.addEventListener('DOMContentLoaded', () => {
       let spacing = baseR * 0.25;
 
       if (activeFixture === '2-cell') {
-        bulbs.push({dx: -spacing/2, dy: 0, r: baseR * 0.7});
-        bulbs.push({dx: spacing/2, dy: 0, r: baseR * 0.7});
+        bulbs.push({dx: -spacing/1.5, dy: 0, r: baseR * 0.45});
+        bulbs.push({dx: spacing/1.5, dy: 0, r: baseR * 0.45});
       } else if (activeFixture === '4-cell') {
-        bulbs.push({dx: -spacing/2, dy: -spacing/2, r: baseR * 0.6});
-        bulbs.push({dx: spacing/2, dy: -spacing/2, r: baseR * 0.6});
-        bulbs.push({dx: -spacing/2, dy: spacing/2, r: baseR * 0.6});
-        bulbs.push({dx: spacing/2, dy: spacing/2, r: baseR * 0.6});
+        bulbs.push({dx: -spacing/1.5, dy: -spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: spacing/1.5, dy: -spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: -spacing/1.5, dy: spacing/1.5, r: baseR * 0.45});
+        bulbs.push({dx: spacing/1.5, dy: spacing/1.5, r: baseR * 0.45});
       } else if (activeFixture === 'fourbar') {
         let s = spacing * 1.5;
         bulbs.push({dx: -s*1.5, dy: 0, r: baseR * 0.75});
@@ -193,10 +193,19 @@ document.addEventListener('DOMContentLoaded', () => {
         bulbs.push({dx: s*0.5, dy: 0, r: baseR * 0.75});
         bulbs.push({dx: s*1.5, dy: 0, r: baseR * 0.75});
       } else if (activeFixture === 'svoboda') {
-        let s = spacing * 0.8;
-        for(let i=0; i<9; i++) {
-          bulbs.push({dx: (i - 4) * s, dy: 0, r: baseR * 0.5});
-        }
+        let s = spacing * 0.7; // Compact horizontal spacing
+        let r = baseR * 0.35; // Less wide spread
+        let rowSpacing = s * 0.866; // Roughly hex grid vertically
+        
+        // 4 on top
+        bulbs.push({dx: -s*1.5, dy: -rowSpacing/2, r: r, isSvoboda: true});
+        bulbs.push({dx: -s*0.5, dy: -rowSpacing/2, r: r, isSvoboda: true});
+        bulbs.push({dx: s*0.5, dy: -rowSpacing/2, r: r, isSvoboda: true});
+        bulbs.push({dx: s*1.5, dy: -rowSpacing/2, r: r, isSvoboda: true});
+        // 3 on bottom
+        bulbs.push({dx: -s, dy: rowSpacing/2, r: r, isSvoboda: true});
+        bulbs.push({dx: 0, dy: rowSpacing/2, r: r, isSvoboda: true});
+        bulbs.push({dx: s, dy: rowSpacing/2, r: r, isSvoboda: true});
       } else { // 'par64'
         bulbs.push({dx: 0, dy: 0, r: baseR});
       }
@@ -207,9 +216,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const innerRadius = b.r * 0.05;
         const grad = ctx.createRadialGradient(mouse.x + b.dx, mouse.y + b.dy, innerRadius, mouse.x + b.dx, mouse.y + b.dy, b.r);
         
-        grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
-        grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
-        grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        if (b.isSvoboda) {
+          grad.addColorStop(0, `rgba(0, 0, 0, ${core.a})`); // Blocked center
+          grad.addColorStop(0.15, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`); // Inner rim
+          grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        } else {
+          grad.addColorStop(0, `rgba(${core.r}, ${core.g}, ${core.b}, ${core.a})`);
+          grad.addColorStop(0.3, `rgba(${Math.floor(core.r)}, ${Math.floor(core.g * 0.6)}, ${Math.floor(core.b * 0.3)}, ${core.a * 0.6})`);
+          grad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        }
 
         ctx.fillStyle = grad;
         ctx.fillRect(0, 0, width, height); 
