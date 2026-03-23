@@ -66,6 +66,19 @@ body::before {
   gap: 1.5rem;
 }
 
+.logo-group {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.nav-logo img {
+  height: clamp(1.5rem, 5vw, 2.5rem);
+  width: auto;
+  object-fit: contain;
+  filter: brightness(0.65) !important;
+}
+
 .logo-img {
   height: clamp(2rem, 6vw, 4rem);
   width: auto;
@@ -74,10 +87,10 @@ body::before {
 
 .logo-text {
   font-weight: 300;
-  font-size: clamp(2rem, 8vw, 6rem);
+  font-size: clamp(1.5rem, 5vw, 2.5rem);
   text-transform: lowercase;
   letter-spacing: -0.06em;
-  line-height: 0.85;
+  line-height: 1;
   margin: 0;
   white-space: nowrap;
 }
@@ -155,15 +168,15 @@ body::before {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  filter: grayscale(100%) contrast(300%) brightness(0.6);
-  opacity: 0;
+  filter: grayscale(100%) contrast(120%) brightness(0.6);
+  opacity: 0.5;
   transition: opacity 0.4s ease, filter 0.4s ease;
   z-index: 0;
 }
 
 .manga-tile:hover .placeholder-img {
-  opacity: 0.4;
-  filter: grayscale(100%) contrast(150%) brightness(1);
+  opacity: 1;
+  filter: grayscale(0%) contrast(100%) brightness(1);
 }
 
 .manga-caption, .tile-number {
@@ -323,11 +336,11 @@ body::before {
 
 @media (max-width: 900px) {
   .manga-grid { grid-template-columns: repeat(2, 1fr); }
-  .logo-text { font-size: clamp(2.5rem, 10vw, 4rem); }
+  .logo-text { font-size: clamp(1.5rem, 5vw, 2.5rem); }
 }
 
 @media (max-width: 500px) {
-  .manga-grid { grid-template-columns: 1fr; }
+  .manga-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .vj-wrapper {

@@ -130,6 +130,7 @@ document.addEventListener('DOMContentLoaded', () => {
         clone.style.left = '0px';
         clone.style.width = '100vw';
         clone.style.height = '100vh';
+        clone.style.borderColor = 'transparent';
         
         setTimeout(() => {
           window.location.href = href;
@@ -177,7 +178,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Main render loop
   function render() {
-    ctx.clearRect(0, 0, width, height);
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+    ctx.fillRect(0, 0, width, height);
 
     let currentTargetRadiusMultiplier = targetRadius;
 
