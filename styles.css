@@ -498,35 +498,37 @@ body {
   width: clamp(3rem, 8vw, 6rem);
 }
 
-.global-logo img {
-  width: 100%;
-  height: auto;
-  object-fit: contain;
-}
-
-.header-wrapper, .page-header {
-  margin-top: calc(clamp(3rem, 8vw, 6rem) + 4vw);
-}
-
-.vj-wrapper {
-}
-
-@media (max-width: 500px) {
-  .global-logo {
-    top: 6vw;
-    left: 6vw;
+@media (max-width: 768px) {
+  .lightbox-prev, .lightbox-next {
+    position: fixed;
+    top: auto;
+    bottom: 5vh;
+    padding: 0;
+    font-size: 2rem;
+    background: rgba(20, 20, 20, 0.8);
+    border: 1px solid var(--ink-dim);
+    border-radius: 50%;
+    width: 60px; height: 60px;
+    display: flex; align-items: center; justify-content: center;
+    line-height: 1;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    z-index: 100002;
+  }
+  .lightbox-prev {
+    left: 25vw;
+  }
+  .lightbox-next {
+    right: 25vw;
+    left: auto;
+  }
+  .lightbox-img {
+    max-height: 65vh;
+    margin-bottom: 15vh;
   }
 }
 
-
-.global-logo {
-  display: block;
-  position: absolute;
-  top: 4vw;
-  left: 4vw;
-  z-index: 1000;
-  width: clamp(3rem, 8vw, 6rem);
-}
 
 .global-logo img {
   width: 100%;

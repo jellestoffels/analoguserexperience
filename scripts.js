@@ -178,7 +178,7 @@ document.addEventListener('DOMContentLoaded', () => {
     { r: 60,  g: 10,  b: 0,   a: 0.15 },    // 1: Very dim red residual glow
     { r: 230, g: 60,  b: 10,  a: 0.5 },     // 2: Deep analog orange
     { r: 255, g: 170, b: 50,  a: 0.8 },     // 3: Warm yellow-orange wash
-    { r: 255, g: 220, b: 160, a: 1.0 }      // 4: Blinding hot warm-white
+    { r: 255, g: 205, b: 130, a: 1.0 }      // 4: Blinding hot warm-white
   ];
 
   function getColor(h) {
@@ -354,6 +354,11 @@ document.body.appendChild(lightboxOverlay);
 let carouselImages = [];
 let carouselIndex = 0;
 
+function showCarouselImage(index) {
+  carouselIndex = (index + carouselImages.length) % carouselImages.length;
+  lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+}
+
 document.addEventListener('click', (e) => {
   let imgBox = e.target.closest('.interlock-item');
   if (imgBox) {
@@ -378,26 +383,36 @@ lightboxOverlay.addEventListener('click', (e) => {
     lightboxOverlay.style.opacity = '0';
     setTimeout(() => { lightboxOverlay.style.display = 'none'; }, 300);
   } else if (e.target.classList.contains('lightbox-prev')) {
-    carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length;
-    lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+    showCarouselImage(carouselIndex - 1);
   } else if (e.target.classList.contains('lightbox-next')) {
-    carouselIndex = (carouselIndex + 1) % carouselImages.length;
-    lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+    showCarouselImage(carouselIndex + 1);
   }
 });
 
 document.addEventListener('keydown', (e) => {
   if (lightboxOverlay.style.display === 'flex') {
     if (e.key === 'ArrowLeft') {
-      carouselIndex = (carouselIndex - 1 + carouselImages.length) % carouselImages.length;
-      lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+      showCarouselImage(carouselIndex - 1);
     } else if (e.key === 'ArrowRight') {
-      carouselIndex = (carouselIndex + 1) % carouselImages.length;
-      lightboxOverlay.querySelector('img').src = carouselImages[carouselIndex];
+      showCarouselImage(carouselIndex + 1);
     } else if (e.key === 'Escape') {
       lightboxOverlay.style.opacity = '0';
       setTimeout(() => { lightboxOverlay.style.display = 'none'; }, 300);
     }
   }
 });
+
+// Swipe Support
+let touchStartX = 0;
+let touchEndX = 0;
+
+lightboxOverlay.addEventListener('touchstart', (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, {passive: true});
+
+lightboxOverlay.addEventListener('touchend', (e) => {
+  touchEndX = e.changedTouches[0].screenX;
+  if (touchEndX < touchStartX - 50) showCarouselImage(carouselIndex + 1);
+  if (touchEndX > touchStartX + 50) showCarouselImage(carouselIndex - 1);
+}, {passive: true});
 
