@@ -18,6 +18,12 @@ export const projectType = {
       },
     },
     {
+      name: 'order',
+      title: 'Display Order',
+      type: 'number',
+      description: 'Lower numbers appear first on the projects page',
+    },
+    {
       name: 'description',
       title: 'Description',
       type: 'text',
@@ -27,16 +33,64 @@ export const projectType = {
       title: 'Cover Image',
       type: 'image',
       description: 'Image displayed on the projects index page',
-      options: { hotspot: true }
+      options: { hotspot: true },
     },
     {
       name: 'mediaBlocks',
       title: 'Media Items',
       type: 'array',
-      description: 'Images and videos for the project layout',
+      description: 'Add images, videos, or text blocks. The layout adjusts automatically.',
       of: [
-        { type: 'image', options: { hotspot: true } }
-      ]
-    }
-  ]
+        {
+          type: 'object',
+          name: 'mediaImage',
+          title: 'Image',
+          fields: [
+            { name: 'image', title: 'Image', type: 'image', options: { hotspot: true } },
+            { name: 'alt', title: 'Alt Text', type: 'string' },
+          ],
+          preview: {
+            select: { media: 'image' },
+            prepare({ media }: any) {
+              return { title: 'Image', media };
+            },
+          },
+        },
+        {
+          type: 'object',
+          name: 'mediaVideo',
+          title: 'Video',
+          fields: [
+            {
+              name: 'url',
+              title: 'Video URL',
+              type: 'url',
+              description: 'YouTube, Vimeo, or direct .mp4 URL',
+            },
+            { name: 'caption', title: 'Caption', type: 'string' },
+          ],
+          preview: {
+            select: { title: 'url' },
+            prepare({ title }: any) {
+              return { title: 'Video', subtitle: title };
+            },
+          },
+        },
+        {
+          type: 'object',
+          name: 'mediaText',
+          title: 'Text Block',
+          fields: [
+            { name: 'content', title: 'Text Content', type: 'text' },
+          ],
+          preview: {
+            select: { title: 'content' },
+            prepare({ title }: any) {
+              return { title: 'Text', subtitle: title?.slice(0, 60) };
+            },
+          },
+        },
+      ],
+    },
+  ],
 }

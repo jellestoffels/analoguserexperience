@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Project · analoguserexperience</title>
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="../sanity-client.js"></script>
+    <script defer src="../scripts.js"></script>
+
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="analoguserexperience" />
+    <link rel="manifest" href="/site.webmanifest" />
+    <style>
+      /* Video items inside the interlock grid */
+      .interlock-item iframe,
+      .interlock-item video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border: none;
+        display: block;
+      }
+      /* Text blocks span full width and sit outside the image grid */
+      .project-text-block {
+        max-width: 800px;
+        color: var(--ink);
+        font-size: 1rem;
+        line-height: 1.7;
+        font-weight: 300;
+        margin: 2vh 0;
+        white-space: pre-wrap;
+      }
+      /* Loading / error state */
+      #project-loading {
+        color: var(--ink-dim);
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        margin-top: 4vh;
+      }
+    </style>
+  </head>
+  <body>
+    <main class="site-shell">
+      <header class="page-header">
+        <a class="back" href="../projects.html">← PROJECTS</a>
+        <div class="logo-group">
+          <a href="../index.html" class="nav-logo">
+            <img src="/resources/images/logo.png" alt="logo" style="filter: brightness(0.70);">
+          </a>
+          <h1 class="page-title" id="project-title" style="font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 300; text-transform: lowercase; margin: 0;"></h1>
+        </div>
+      </header>
+
+      <div id="project-loading">Loading…</div>
+
+      <!-- Description paragraph — shown only if the project has one -->
+      <section id="project-description-wrap" style="max-width: 800px; margin-bottom: 4vh; color: var(--ink); display:none;">
+        <p id="project-description" style="font-size: 1.2rem; line-height: 1.6;"></p>
+      </section>
+
+      <!-- All media items land here -->
+      <div id="project-media"></div>
+    </main>
+
+    <script>
+      (async () => {
+        const params  = new URLSearchParams(window.location.search);
+        const slug    = params.get('slug');
+
+        const loadingEl  = document.getElementById('project-loading');
+        const titleEl    = document.getElementById('project-title');
+        const descWrap   = document.getElementById('project-description-wrap');
+        const descEl     = document.getElementById('project-description');
+        const mediaEl    = document.getElementById('project-media');
+        const pageTitleEl = document.querySelector('title');
+
+        if (!slug) {
+          loadingEl.textContent = 'No project specified.';
+          return;
+        }
+
+        try {
+          const project = await window.sanityClient.fetch(
+            '*[_type == "project" && slug.current == $slug][0]',
+            { slug }
+          );
+
+          if (!project) {
+            loadingEl.textContent = 'Project not found.';
+            return;
+          }
+
+          loadingEl.style.display = 'none';
+
+          // Header
+          titleEl.textContent = project.title || '';
+          if (pageTitleEl) pageTitleEl.textContent = `${project.title} · analoguserexperience`;
+
+          // Description
+          if (project.description) {
+            descEl.textContent = project.description;
+            descWrap.style.display = '';
+          }
+
+          // Media blocks
+          const blocks = project.mediaBlocks || [];
+
+          // Separate text blocks from visual media so we can group visual items into the grid
+          // Text blocks break the grid and are inserted as full-width sections between groups.
+          // Strategy: walk the blocks in order; accumulate images/videos into a running grid,
+          // and flush the grid + insert a text block whenever a text block is encountered.
+
+          let gridItems = []; // { html: string } accumulator
+
+          const flushGrid = () => {
+            if (gridItems.length === 0) return;
+            const grid = document.createElement('div');
+            grid.className = 'interlock-grid';
+            gridItems.forEach(({ html }) => {
+              const item = document.createElement('div');
+              item.className = 'interlock-item';
+              item.innerHTML = html;
+              grid.appendChild(item);
+            });
+            mediaEl.appendChild(grid);
+            gridItems = [];
+          };
+
+          blocks.forEach((block) => {
+            const type = block._type;
+
+            if (type === 'mediaImage') {
+              const ref = block.image?.asset?._ref;
+              const alt = block.alt || '';
+              if (ref) {
+                const src = window.sanityClient.imageUrl(ref, 1600);
+                gridItems.push({
+                  html: `<img src="${src}" alt="${alt}" loading="lazy">`,
+                });
+              }
+            } else if (type === 'mediaVideo') {
+              const embed = window.sanityClient.videoEmbed(block.url);
+              if (embed) {
+                if (embed.type === 'iframe') {
+                  gridItems.push({
+                    html: `<iframe src="${embed.src}" allowfullscreen allow="autoplay; encrypted-media" title="${block.caption || 'video'}"></iframe>`,
+                  });
+                } else {
+                  gridItems.push({
+                    html: `<video src="${embed.src}" controls playsinline></video>`,
+                  });
+                }
+              }
+            } else if (type === 'mediaText') {
+              // Text block: flush grid first, then add full-width text
+              flushGrid();
+              const textEl = document.createElement('p');
+              textEl.className = 'project-text-block';
+              textEl.textContent = block.content || '';
+              mediaEl.appendChild(textEl);
+            }
+          });
+
+          // Flush any remaining grid items
+          flushGrid();
+
+        } catch (e) {
+          loadingEl.textContent = 'Could not load project.';
+          console.error('Sanity project fetch error:', e);
+        }
+      })();
+    </script>
+  </body>
+</html>

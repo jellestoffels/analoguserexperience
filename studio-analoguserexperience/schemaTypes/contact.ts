@@ -12,13 +12,12 @@ export const contactType = {
       name: 'image',
       title: 'Banner Image',
       type: 'image',
-      options: { hotspot: true }
+      options: { hotspot: true },
     },
     {
       name: 'email',
       title: 'Email',
       type: 'string',
-      validation: (Rule: any) => Rule.email()
     },
     {
       name: 'phone',
@@ -39,15 +38,15 @@ export const contactType = {
           type: 'object',
           fields: [
             { name: 'platform', title: 'Platform', type: 'string' },
-            { name: 'url', title: 'URL', type: 'url' }
-          ]
-        }
-      ]
+            { name: 'url', title: 'URL', type: 'url' },
+          ],
+        },
+      ],
     },
     {
       name: 'address',
       title: 'Address',
       type: 'text',
-    }
-  ]
+    },
+  ],
 }

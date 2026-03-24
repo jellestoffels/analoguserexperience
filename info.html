@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Info · analoguserexperience</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="sanity-client.js"></script>
     <script defer src="scripts.js"></script>
   
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -26,13 +27,35 @@
       
       <section class="content-void">
         <div>
-           <img src="https://images.unsplash.com/photo-1557672172-298e090bd0f1?w=800&q=80" alt="About us placeholder" class="content-image">
+          <img id="info-image" src="" alt="About us" class="content-image" style="display:none">
         </div>
-        <div class="content-text">
-          <p>Amsterdam, 2026</p>
-          <p>an event design studio where the user's experience starts upon arrival. Every moment from entrance to exit is included in </p>
+        <div class="content-text" id="info-text">
+          <p id="info-location"></p>
+          <p id="info-description"></p>
         </div>
       </section>
+
+      <script>
+        (async () => {
+          try {
+            const info = await window.sanityClient.fetch('*[_type == "info"][0]');
+            if (!info) return;
+            const titleEl = document.querySelector('.page-title');
+            const locEl   = document.getElementById('info-location');
+            const descEl  = document.getElementById('info-description');
+            const imgEl   = document.getElementById('info-image');
+            if (titleEl && info.title) titleEl.textContent = info.title;
+            if (locEl)  locEl.textContent  = info.locationAndYear || '';
+            if (descEl) descEl.textContent = info.description || '';
+            if (imgEl && info.image?.asset?._ref) {
+              imgEl.src = window.sanityClient.imageUrl(info.image.asset._ref, 800);
+              imgEl.style.display = '';
+            }
+          } catch (e) {
+            console.warn('Could not load info from Sanity:', e);
+          }
+        })();
+      </script>
     </main>
   </body>
 </html>

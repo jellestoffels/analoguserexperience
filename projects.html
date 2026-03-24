@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Projects · analoguserexperience</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="sanity-client.js"></script>
     <script defer src="scripts.js"></script>
   
     <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
@@ -24,23 +25,46 @@
         </div>
       </header>
       
-      <section class="manga-grid">
-        <a href="projects/keinemusik.html" class="manga-tile">
-          <span class="tile-number">FILE.01</span>
-          <img src="https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?w=800&q=80" class="placeholder-img" alt="Keinemusik">
-          <div class="manga-caption">Keinemusik</div>
-        </a>
-        <a href="projects/&ME.html" class="manga-tile">
-          <span class="tile-number">FILE.02</span>
-          <img src="https://images.unsplash.com/photo-1470229722913-7c090be5f524?w=800&q=80" class="placeholder-img" alt="Project 2">
-          <div class="manga-caption">&ME</div>
-        </a>
-        <a href="projects/MOVA.html" class="manga-tile">
-          <span class="tile-number">FILE.03</span>
-          <img src="https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80" class="placeholder-img" alt="Project 3">
-          <div class="manga-caption">MOVA</div>
-        </a>
+      <section class="manga-grid" id="projects-grid">
+        <!-- dynamically populated from Sanity -->
       </section>
+
+      <script>
+        (async () => {
+          const grid = document.getElementById('projects-grid');
+          try {
+            const projects = await window.sanityClient.fetch(
+              '*[_type == "project"] | order(order asc, _createdAt asc) { title, slug, coverImage }'
+            );
+
+            if (!projects || projects.length === 0) {
+              grid.innerHTML = '<p style="color:var(--ink-dim);letter-spacing:0.1em;text-transform:uppercase;font-size:0.8rem">No projects yet.</p>';
+              return;
+            }
+
+            projects.forEach((project, i) => {
+              const slug   = project.slug?.current || '';
+              const title  = project.title || 'Untitled';
+              const imgSrc = project.coverImage?.asset?._ref
+                ? window.sanityClient.imageUrl(project.coverImage.asset._ref, 800)
+                : '';
+              const num = String(i + 1).padStart(2, '0');
+
+              const tile = document.createElement('a');
+              tile.href      = `projects/project.html?slug=${encodeURIComponent(slug)}`;
+              tile.className = 'manga-tile';
+              tile.innerHTML = `
+                <span class="tile-number">FILE.${num}</span>
+                ${imgSrc ? `<img src="${imgSrc}" class="placeholder-img" alt="${title}">` : ''}
+                <div class="manga-caption">${title}</div>
+              `;
+              grid.appendChild(tile);
+            });
+          } catch (e) {
+            console.warn('Could not load projects from Sanity:', e);
+          }
+        })();
+      </script>
     </main>
   </body>
 </html>
