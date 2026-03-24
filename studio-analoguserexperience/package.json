@@ -5,7 +5,8 @@
   "main": "package.json",
   "license": "UNLICENSED",
   "scripts": {
-    "build": "sanity build ../studio",
+    "build": "sanity build ../studio -y",
+    "postbuild": "node patch-paths.js",
     "deploy": "sanity deploy",
     "deploy-graphql": "sanity graphql deploy",
     "dev": "sanity dev",
