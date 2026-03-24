@@ -10,6 +10,6 @@ export default defineCliConfig({
     return config
   },
   deployment: {
-    autoUpdates: true,
+    autoUpdates: false,
   }
 })
