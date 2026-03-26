@@ -90,6 +90,20 @@ export const projectType = {
             },
           },
         },
+        {
+          type: 'object',
+          name: 'chapterTitle',
+          title: 'Chapter Title',
+          fields: [
+            { name: 'title', title: 'Title', type: 'string' },
+          ],
+          preview: {
+            select: { title: 'title' },
+            prepare({ title }: any) {
+              return { title: 'Chapter', subtitle: title };
+            },
+          },
+        },
       ],
     },
   ],

@@ -152,6 +152,30 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => {
           window.location.href = href;
         }, 500);
+      } else if ((el.classList.contains('back') || el.classList.contains('nav-logo')) && href && href !== '#') {
+        e.preventDefault();
+        
+        const overlay = document.createElement('div');
+        overlay.classList.add('page-transition-clone');
+        overlay.style.position = 'fixed';
+        overlay.style.top = '0';
+        overlay.style.left = '0';
+        overlay.style.width = '100vw';
+        overlay.style.height = '100vh';
+        overlay.style.backgroundColor = 'black';
+        overlay.style.opacity = '0';
+        overlay.style.transition = 'opacity 0.4s ease';
+        overlay.style.zIndex = '999999';
+        overlay.style.pointerEvents = 'none';
+        document.body.appendChild(overlay);
+        
+        // Force reflow
+        overlay.getBoundingClientRect();
+        overlay.style.opacity = '1';
+        
+        setTimeout(() => {
+          window.location.href = href;
+        }, 400);
       }
     });
     el.addEventListener('mouseenter', () => { 
@@ -175,10 +199,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const colors = [
     { r: 0,   g: 0,   b: 0,   a: 0 },       // 0: Off / Darkness
-    { r: 60,  g: 10,  b: 0,   a: 0.15 },    // 1: Very dim red residual glow
-    { r: 230, g: 60,  b: 10,  a: 0.5 },     // 2: Deep analog orange
-    { r: 255, g: 170, b: 50,  a: 0.8 },     // 3: Warm yellow-orange wash
-    { r: 255, g: 205, b: 130, a: 1.0 }      // 4: Blinding hot warm-white
+    { r: 40,  g: 5,   b: 0,   a: 0.1 },     // 1: Very dim red residual glow (slightly darker)
+    { r: 200, g: 50,  b: 5,   a: 0.4 },     // 2: Deep analog orange (slightly darker)
+    { r: 255, g: 160, b: 40,  a: 0.8 },     // 3: Warm yellow-orange wash
+    { r: 255, g: 190, b: 100, a: 1.0 }      // 4: Blinding hot, slightly warmer in color
   ];
 
   function getColor(h) {
@@ -229,16 +253,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (isDown) {
         heat += 0.04;
         if (heat > 1) heat = 1;
-        targetRadius = 0.2 + (heat * 0.2);
+        // smaller in size when clicking
+        targetRadius = 0.08 + (heat * 0.1);
         currentTargetRadiusMultiplier = targetRadius;
       } else if (isHoveringBlock) {
-        if (heat < 0.5) heat += 0.008;     
-        else if (heat > 0.5) heat -= 0.0035; 
+        if (heat > 0.4) heat = Math.max(0.4, heat - 0.0015);
+        else if (heat < 0.4) heat = Math.min(0.4, heat + 0.008);
         targetRadius = 0.11; 
         currentTargetRadiusMultiplier = targetRadius;
       } else {
-        heat -= 0.0035; 
-        if (heat < 0) heat = 0;
+        // glow always under mouse (baseline heat ~0.2)
+        if (heat > 0.2) heat = Math.max(0.2, heat - 0.0015); // fade out slower
+        else if (heat < 0.2) heat = Math.min(0.2, heat + 0.008); 
+        targetRadius = 0.1;
         currentTargetRadiusMultiplier = targetRadius;
       }
     }
