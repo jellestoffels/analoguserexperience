@@ -284,7 +284,7 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         // glow always under mouse (baseline heat ~0.2)
         if (heat > 0.2)
-          heat = Math.max(0.2, heat - 0.008); // fade out faster to orange
+          heat = Math.max(0.4, heat - 0.005); // fade out faster to orange
         else if (heat < 0.2) heat = Math.min(0.2, heat + 0.008);
         targetRadius = 0.1;
         currentTargetRadiusMultiplier = targetRadius;
