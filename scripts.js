@@ -28,6 +28,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let mouse = { x: width / 2, y: height / 2 };
   let isDown = false;
   let isHoveringBlock = false;
+  let releaseTime = 0;
 
   // State persistence across pages
   let hasInteracted = sessionStorage.getItem("analogInteracted") === "true";
@@ -86,12 +87,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   window.addEventListener("mouseup", () => {
     isDown = false;
+    releaseTime = Date.now();
   });
   window.addEventListener("mousemove", (e) => {
-    if (isDown || isHoveringBlock) {
-      mouse.x = e.clientX;
-      mouse.y = e.clientY;
-    }
+    mouse.x = e.clientX;
+    mouse.y = e.clientY;
   });
 
   // Touch support
@@ -107,14 +107,13 @@ document.addEventListener("DOMContentLoaded", () => {
   );
   window.addEventListener("touchend", () => {
     isDown = false;
+    releaseTime = Date.now();
   });
   window.addEventListener(
     "touchmove",
     (e) => {
-      if (isDown || isHoveringBlock) {
-        mouse.x = e.touches[0].clientX;
-        mouse.y = e.touches[0].clientY;
-      }
+      mouse.x = e.touches[0].clientX;
+      mouse.y = e.touches[0].clientY;
     },
     { passive: true },
   );
@@ -228,7 +227,7 @@ document.addEventListener("DOMContentLoaded", () => {
   function getColor(h) {
     if (h <= 0) return colors[0];
     if (h >= 1) return colors[4];
-    let scaled = h * 4;
+    let scaled = h * 1.2;
     let index = Math.floor(scaled);
     let t = scaled - index;
     return mixColor(colors[index], colors[index + 1], t);
@@ -282,10 +281,13 @@ document.addEventListener("DOMContentLoaded", () => {
         targetRadius = 0.11;
         currentTargetRadiusMultiplier = targetRadius;
       } else {
-        // glow always under mouse (baseline heat ~0.2)
-        if (heat > 0.2)
-          heat = Math.max(0.4, heat - 0.005); // fade out faster to orange
-        else if (heat < 0.2) heat = Math.min(0.2, heat + 0.008);
+        // Decay fully to zero; linger slowly right after a click
+        const timeSinceRelease = Date.now() - releaseTime;
+        if (timeSinceRelease < 800) {
+          heat = Math.max(0, heat - 0.004); // slow linger
+        } else {
+          heat = Math.max(0, heat - 0.015); // fast decay to complete off
+        }
         targetRadius = 0.1;
         currentTargetRadiusMultiplier = targetRadius;
       }
