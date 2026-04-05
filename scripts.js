@@ -29,6 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isDown = false;
   let isHoveringBlock = false;
   let releaseTime = 0;
+  let mouseOnPage = true;
 
   // State persistence across pages
   let hasInteracted = sessionStorage.getItem("analogInteracted") === "true";
@@ -92,6 +93,14 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("mousemove", (e) => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+    mouseOnPage = true;
+    markInteraction();
+  });
+  document.addEventListener("mouseleave", () => {
+    mouseOnPage = false;
+  });
+  document.addEventListener("mouseenter", () => {
+    mouseOnPage = true;
   });
 
   // Touch support
@@ -281,12 +290,19 @@ document.addEventListener("DOMContentLoaded", () => {
         targetRadius = 0.11;
         currentTargetRadiusMultiplier = targetRadius;
       } else {
-        // Decay fully to zero; linger slowly right after a click
         const timeSinceRelease = Date.now() - releaseTime;
-        if (timeSinceRelease < 800) {
-          heat = Math.max(0, heat - 0.004); // slow linger
+        if (mouseOnPage) {
+          // Always maintain a visible glow under the cursor
+          const baseline = 0.2;
+          if (timeSinceRelease < 800) {
+            heat = Math.max(baseline, heat - 0.004); // slow linger after click
+          } else {
+            if (heat > baseline) heat = Math.max(baseline, heat - 0.015);
+            else heat = Math.min(baseline, heat + 0.01);
+          }
         } else {
-          heat = Math.max(0, heat - 0.015); // fast decay to complete off
+          // Mouse left the page — fade to complete off
+          heat = Math.max(0, heat - 0.015);
         }
         targetRadius = 0.1;
         currentTargetRadiusMultiplier = targetRadius;
