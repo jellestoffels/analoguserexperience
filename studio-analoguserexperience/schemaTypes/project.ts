@@ -9,6 +9,12 @@ export const projectType = {
       type: 'string',
     },
     {
+      name: 'subtitle',
+      title: 'Subtitle',
+      type: 'string',
+      description: 'Short secondary line displayed below the project title',
+    },
+    {
       name: 'slug',
       title: 'Slug',
       type: 'slug',

@@ -57,8 +57,8 @@
   <body>
     <main class="site-shell">
       <header class="page-header">
-        <a class="back" href="../projects.html">←</a>
         <div class="logo-group">
+          <a class="back" href="../projects.html" aria-label="Back"><img src="/resources/svg/back_arrow-white.svg" alt=""></a>
           <a href="../index.html" class="nav-logo">
             <img src="/resources/svg/aux_logo-white-full.svg" alt="analoguserexperience">
           </a>
@@ -67,6 +67,8 @@
       </header>
 
       <div id="project-loading">Loading…</div>
+
+      <p id="project-subtitle" class="project-subtitle" hidden></p>
 
       <!-- Description paragraph — shown only if the project has one -->
       <section id="project-description-wrap" style="max-width: 800px; margin-bottom: 4vh; color: var(--ink); display:none;">
@@ -84,6 +86,7 @@
 
         const loadingEl  = document.getElementById('project-loading');
         const titleEl    = document.getElementById('project-title');
+        const subtitleEl = document.getElementById('project-subtitle');
         const descWrap   = document.getElementById('project-description-wrap');
         const descEl     = document.getElementById('project-description');
         const mediaEl    = document.getElementById('project-media');
@@ -109,6 +112,10 @@
 
           // Header
           titleEl.textContent = (project.title || '').toUpperCase();
+          if (project.subtitle) {
+            subtitleEl.textContent = project.subtitle;
+            subtitleEl.hidden = false;
+          }
           if (pageTitleEl) pageTitleEl.textContent = `${project.title} · analoguserexperience`;
 
           // Description
