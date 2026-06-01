@@ -39,8 +39,20 @@ export const projectType = {
       name: 'mediaBlocks',
       title: 'Media Items',
       type: 'array',
-      description: 'Add images, videos, or text blocks. The layout adjusts automatically.',
+      description: 'Drop multiple images or video files here, or add text blocks. The layout adjusts automatically.',
       of: [
+        {
+          type: 'image',
+          title: 'Uploaded Image',
+          options: {hotspot: true},
+          fields: [{name: 'alt', title: 'Alt Text', type: 'string'}],
+        },
+        {
+          type: 'file',
+          title: 'Uploaded Video',
+          options: {accept: 'video/*'},
+          fields: [{name: 'caption', title: 'Caption', type: 'string'}],
+        },
         {
           type: 'object',
           name: 'mediaImage',

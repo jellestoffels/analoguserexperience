@@ -30,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let isHoveringBlock = false;
   let releaseTime = 0;
   let mouseOnPage = true;
+  let glowHeat = 0.45;
 
   // State persistence across pages
   let hasInteracted = sessionStorage.getItem("analogInteracted") === "true";
@@ -60,6 +61,10 @@ document.addEventListener("DOMContentLoaded", () => {
     fixtureSelector.addEventListener("mousedown", (e) => e.stopPropagation());
     fixtureSelector.addEventListener("change", () => {
       sessionStorage.setItem("analogFixture", fixtureSelector.value);
+      ctx.clearRect(0, 0, width, height);
+      idleFrames = 0;
+      heat = Math.max(heat, cursorBaseline);
+      glowHeat = cursorBaseline;
     });
   }
 
@@ -85,6 +90,7 @@ document.addEventListener("DOMContentLoaded", () => {
     markInteraction();
     mouse.x = e.clientX;
     mouse.y = e.clientY;
+    glowHeat = Math.max(glowHeat, cursorBaseline);
   });
   window.addEventListener("mouseup", () => {
     isDown = false;
@@ -94,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
     mouse.x = e.clientX;
     mouse.y = e.clientY;
     mouseOnPage = true;
+    glowHeat = Math.max(glowHeat, cursorBaseline);
     markInteraction();
   });
   document.addEventListener("mouseleave", () => {
@@ -101,6 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
   document.addEventListener("mouseenter", () => {
     mouseOnPage = true;
+    glowHeat = Math.max(glowHeat, cursorBaseline);
   });
 
   // Touch support
@@ -111,6 +119,7 @@ document.addEventListener("DOMContentLoaded", () => {
       markInteraction();
       mouse.x = e.touches[0].clientX;
       mouse.y = e.touches[0].clientY;
+      glowHeat = Math.max(glowHeat, cursorBaseline);
     },
     { passive: true },
   );
@@ -123,6 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
     (e) => {
       mouse.x = e.touches[0].clientX;
       mouse.y = e.touches[0].clientY;
+      glowHeat = Math.max(glowHeat, cursorBaseline);
     },
     { passive: true },
   );
@@ -236,8 +246,8 @@ document.addEventListener("DOMContentLoaded", () => {
   function getColor(h) {
     if (h <= 0) return colors[0];
     if (h >= 1) return colors[4];
-    let scaled = h * 1.2;
-    let index = Math.floor(scaled);
+    let scaled = h * (colors.length - 1);
+    let index = Math.min(Math.floor(scaled), colors.length - 2);
     let t = scaled - index;
     return mixColor(colors[index], colors[index + 1], t);
   }
@@ -245,6 +255,81 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentRadiusMultiplier = 0.2;
   let targetRadius = 0.2;
   let idleFrames = 0;
+  const cursorBaseline = 0.45;
+  const afterglowHoldMs = 1800;
+
+  function drawGlow(intensity, radiusMultiplier) {
+    if (intensity <= 0) return;
+
+    const core = getColor(intensity);
+    const activeFixture = sessionStorage.getItem("analogFixture") || "par64";
+    let bulbs = [];
+    let baseR = Math.max(width, height) * radiusMultiplier;
+
+    if (activeFixture === "2-cell") {
+      let r = baseR * 0.45;
+      bulbs.push({ dx: -r, dy: 0, r: r });
+      bulbs.push({ dx: r, dy: 0, r: r });
+    } else if (activeFixture === "4-cell") {
+      let r = baseR * 0.4;
+      let s = r * 1.1;
+      bulbs.push({ dx: -s, dy: -s, r: r });
+      bulbs.push({ dx: s, dy: -s, r: r });
+      bulbs.push({ dx: -s, dy: s, r: r });
+      bulbs.push({ dx: s, dy: s, r: r });
+    } else if (activeFixture === "fourbar") {
+      let r = baseR * 0.5;
+      let s = r * 1.2;
+      bulbs.push({ dx: -s * 1.5, dy: 0, r: r });
+      bulbs.push({ dx: -s * 0.5, dy: 0, r: r });
+      bulbs.push({ dx: s * 0.5, dy: 0, r: r });
+      bulbs.push({ dx: s * 1.5, dy: 0, r: r });
+    } else if (activeFixture === "svoboda") {
+      let r = baseR * 0.18;
+      let colSpacing = r * 2.1;
+      let rowSpacing = r * 1.8;
+      [-2, -1, 0, 1, 2].forEach((col) => {
+        bulbs.push({ dx: col * colSpacing, dy: -rowSpacing / 2, r: r, isSvoboda: true });
+      });
+      [-1.5, -0.5, 0.5, 1.5].forEach((col) => {
+        bulbs.push({ dx: col * colSpacing, dy: rowSpacing / 2, r: r, isSvoboda: true });
+      });
+    } else {
+      bulbs.push({ dx: 0, dy: 0, r: baseR });
+    }
+
+    ctx.globalCompositeOperation = "screen";
+
+    bulbs.forEach((b) => {
+      const innerRadius = b.r * 0.05;
+      const grad = ctx.createRadialGradient(
+        mouse.x + b.dx,
+        mouse.y + b.dy,
+        innerRadius,
+        mouse.x + b.dx,
+        mouse.y + b.dy,
+        b.r,
+      );
+
+      const cr = Math.floor(core.r);
+      const cg = Math.floor(core.g);
+      const cb = Math.floor(core.b);
+
+      if (b.isSvoboda) {
+        grad.addColorStop(0, `rgba(0, 0, 0, ${core.a})`);
+        grad.addColorStop(0.15, `rgba(${cr}, ${cg}, ${cb}, ${core.a})`);
+        grad.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, ${core.a * 0.6})`);
+        grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+      } else {
+        grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${core.a})`);
+        grad.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, ${core.a * 0.6})`);
+        grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
+      }
+
+      ctx.fillStyle = grad;
+      ctx.fillRect(0, 0, width, height);
+    });
+  }
 
   // Main render loop
   function render() {
@@ -252,17 +337,22 @@ document.addEventListener("DOMContentLoaded", () => {
     // Use destination-out to create trails.
     // We only hard clear (clearRect) after the light has been off for a moment
     // to ensure all trails have faded naturally without snapping.
-    if (heat <= 0 && idleFrames > 5) {
+    if (mouseOnPage) {
+      glowHeat = Math.max(glowHeat, cursorBaseline);
+    }
+
+    const visibleHeat = Math.max(heat, glowHeat);
+
+    if (visibleHeat <= 0.001 && idleFrames > 5) {
       ctx.clearRect(0, 0, width, height);
     } else {
       ctx.globalCompositeOperation = "destination-out";
-      // Use a consistent fade speed for trails, slightly faster when light is off
-      const fadeSpeed = heat <= 0.01 ? 0.2 : 0.08;
+      const fadeSpeed = heat <= 0.01 ? 0.13 : 0.045;
       ctx.fillStyle = `rgba(0, 0, 0, ${fadeSpeed})`;
       ctx.fillRect(0, 0, width, height);
     }
 
-    if (heat <= 0) {
+    if (visibleHeat <= 0.001) {
       idleFrames++;
     } else {
       idleFrames = 0;
@@ -292,16 +382,14 @@ document.addEventListener("DOMContentLoaded", () => {
       } else {
         const timeSinceRelease = Date.now() - releaseTime;
         if (mouseOnPage) {
-          // Always maintain a visible glow under the cursor
-          const baseline = 0.2;
-          if (timeSinceRelease < 800) {
-            heat = Math.max(baseline, heat - 0.004); // slow linger after click
+          if (timeSinceRelease < afterglowHoldMs) {
+            heat = Math.max(0, heat - 0.002);
           } else {
-            if (heat > baseline) heat = Math.max(baseline, heat - 0.015);
-            else heat = Math.min(baseline, heat + 0.01);
+            heat = Math.max(0, heat - 0.01);
           }
+          glowHeat = cursorBaseline;
         } else {
-          // Mouse left the page — fade to complete off
+          glowHeat = Math.max(0, glowHeat - 0.02);
           heat = Math.max(0, heat - 0.015);
         }
         targetRadius = 0.1;
@@ -312,99 +400,7 @@ document.addEventListener("DOMContentLoaded", () => {
     currentRadiusMultiplier +=
       (currentTargetRadiusMultiplier - currentRadiusMultiplier) * 0.03;
 
-    if (heat > 0) {
-      const core = getColor(heat);
-
-      const activeFixture = sessionStorage.getItem("analogFixture") || "par64";
-      let bulbs = [];
-      let baseR = Math.max(width, height) * currentRadiusMultiplier;
-      let spacing = baseR * 0.25;
-      let spacingscale = 0.8;
-
-      if (activeFixture === "2-cell") {
-        let r = baseR * 0.45;
-        bulbs.push({ dx: -r, dy: 0, r: r });
-        bulbs.push({ dx: r, dy: 0, r: r });
-      } else if (activeFixture === "4-cell") {
-        let r = baseR * 0.4;
-        let s = r * 1.1; // Space them past their radius
-        bulbs.push({ dx: -s, dy: -s, r: r });
-        bulbs.push({ dx: s, dy: -s, r: r });
-        bulbs.push({ dx: -s, dy: s, r: r });
-        bulbs.push({ dx: s, dy: s, r: r });
-      } else if (activeFixture === "fourbar") {
-        let r = baseR * 0.5;
-        let s = r * 1.2;
-        bulbs.push({ dx: -s * 1.5, dy: 0, r: r });
-        bulbs.push({ dx: -s * 0.5, dy: 0, r: r });
-        bulbs.push({ dx: s * 0.5, dy: 0, r: r });
-        bulbs.push({ dx: s * 1.5, dy: 0, r: r });
-      } else if (activeFixture === "svoboda") {
-        let s = baseR * 0.45; // Wider horizontal spacing
-        let r = baseR * 0.3; // Smaller radius
-        bulbs.push({ dx: s * 1.5, dy: -rowSpacing / 2, r: r, isSvoboda: true });
-        // 3 on bottom
-        bulbs.push({ dx: -s, dy: rowSpacing / 2, r: r, isSvoboda: true });
-        bulbs.push({ dx: 0, dy: rowSpacing / 2, r: r, isSvoboda: true });
-        bulbs.push({ dx: s, dy: rowSpacing / 2, r: r, isSvoboda: true });
-      } else {
-        // 'par64'
-        bulbs.push({ dx: 0, dy: 0, r: baseR });
-      }
-
-      ctx.globalCompositeOperation = "screen";
-
-      bulbs.forEach((b) => {
-        const innerRadius = b.r * 0.05;
-        const grad = ctx.createRadialGradient(
-          mouse.x + b.dx,
-          mouse.y + b.dy,
-          innerRadius,
-          mouse.x + b.dx,
-          mouse.y + b.dy,
-          b.r,
-        );
-
-        // 2. GRADIENT BANDING FIX
-        // Keep the R, G, B channels constant across the gradient. Only vary Alpha.
-        // This prevents the browser from interpolating colors (e.g. Orange -> Black),
-        // which causes gray/muddy banding in 'screen' or 'add' mode.
-        // Instead, we fade from Orange(Alpha 1) -> Orange(Alpha 0).
-
-        // Base color components
-        const cr = Math.floor(core.r);
-        const cg = Math.floor(core.g);
-        const cb = Math.floor(core.b);
-
-        if (b.isSvoboda) {
-          // Svoboda: Blocked center (black hole), then light rim, then fade out
-          // Center stop: black (alpha depends on heat)
-          grad.addColorStop(0, `rgba(0, 0, 0, ${core.a})`);
-
-          // Inner rim: Full color
-          grad.addColorStop(0.15, `rgba(${cr}, ${cg}, ${cb}, ${core.a})`);
-
-          // Mid: Full color, slightly lower alpha
-          grad.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, ${core.a * 0.6})`);
-
-          // End: Full color, 0 alpha
-          grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
-        } else {
-          // Standard Par: Center hotspot -> fade out
-          // Center
-          grad.addColorStop(0, `rgba(${cr}, ${cg}, ${cb}, ${core.a})`);
-
-          // Mid
-          grad.addColorStop(0.3, `rgba(${cr}, ${cg}, ${cb}, ${core.a * 0.6})`);
-
-          // End
-          grad.addColorStop(1, `rgba(${cr}, ${cg}, ${cb}, 0)`);
-        }
-
-        ctx.fillStyle = grad;
-        ctx.fillRect(0, 0, width, height);
-      });
-    }
+    drawGlow(Math.max(heat, glowHeat), currentRadiusMultiplier);
 
     requestAnimationFrame(render);
   }

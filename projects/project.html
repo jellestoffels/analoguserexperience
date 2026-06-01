@@ -57,12 +57,12 @@
   <body>
     <main class="site-shell">
       <header class="page-header">
-        <a class="back" href="../projects.html">← PROJECTS</a>
+        <a class="back" href="../projects.html">←</a>
         <div class="logo-group">
           <a href="../index.html" class="nav-logo">
-            <img src="/resources/images/logo.png" alt="logo" style="filter: brightness(0.70);">
+            <img src="/resources/svg/aux_logo-white-full.svg" alt="analoguserexperience">
           </a>
-          <h1 class="page-title" id="project-title" style="font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 300; text-transform: lowercase; margin: 0;"></h1>
+          <h1 class="page-title" id="project-title"></h1>
         </div>
       </header>
 
@@ -108,7 +108,7 @@
           loadingEl.style.display = 'none';
 
           // Header
-          titleEl.textContent = project.title || '';
+          titleEl.textContent = (project.title || '').toUpperCase();
           if (pageTitleEl) pageTitleEl.textContent = `${project.title} · analoguserexperience`;
 
           // Description
@@ -144,7 +144,25 @@
           blocks.forEach((block) => {
             const type = block._type;
 
-            if (type === 'mediaImage') {
+            if (type === 'image') {
+              const ref = block.asset?._ref;
+              const alt = block.alt || '';
+              if (ref) {
+                const src = window.sanityClient.imageUrl(ref, 1600);
+                gridItems.push({
+                  html: `<img src="${src}" alt="${alt}" loading="lazy">`,
+                });
+              }
+            } else if (type === 'file') {
+              const ref = block.asset?._ref;
+              const url = block.asset?.url || window.sanityClient.fileUrl(ref);
+              const caption = block.caption || 'video';
+              if (url) {
+                gridItems.push({
+                  html: `<video src="${url}" controls playsinline title="${caption}"></video>`,
+                });
+              }
+            } else if (type === 'mediaImage') {
               const ref = block.image?.asset?._ref;
               const alt = block.alt || '';
               if (ref) {

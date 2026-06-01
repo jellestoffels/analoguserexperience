@@ -42,6 +42,19 @@
     },
 
     /**
+     * Build a Sanity CDN file URL from an asset _ref string.
+     * @param {string} ref e.g. "file-abc123-mp4"
+     * @returns {string}
+     */
+    fileUrl(ref) {
+      if (!ref) return '';
+      const m = ref.match(/^file-([a-zA-Z0-9]+)-(.+)$/);
+      if (!m) return '';
+      const [, id, ext] = m;
+      return `https://cdn.sanity.io/files/${PROJECT_ID}/${DATASET}/${id}.${ext}`;
+    },
+
+    /**
      * Return embed info for a video URL.
      * @param {string} url
      * @returns {{ type: 'iframe'|'video', src: string }|null}

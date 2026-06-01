@@ -18,10 +18,10 @@
   <body>
     <main class="site-shell">
       <header class="page-header">
-        <a class="back" href="index.html">← BACK</a>
+        <a class="back" href="index.html">←</a>
         <div class="logo-group">
-          <a href="index.html" class="nav-logo"><img src="/resources/images/logo.png" alt="logo" style="filter: brightness(0.70);"></a>
-          <h1 class="page-title" style="font-size: clamp(1.5rem, 5vw, 2.5rem); font-weight: 300; text-transform: lowercase; margin: 0;">contact</h1>
+          <a href="index.html" class="nav-logo"><img src="/resources/svg/aux_logo-white-full.svg" alt="analoguserexperience"></a>
+          <h1 class="page-title">CONTACT</h1>
         </div>
       </header>
       
@@ -45,7 +45,7 @@
             const detailsEl = document.getElementById('contact-details');
             const titleEl   = document.querySelector('.page-title');
 
-            if (titleEl && c.title) titleEl.textContent = c.title;
+            if (titleEl && c.title) titleEl.textContent = c.title.toUpperCase();
 
             if (imgEl && c.image?.asset?._ref) {
               imgEl.src = window.sanityClient.imageUrl(c.image.asset._ref, 800);
