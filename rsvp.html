@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RSVP · analoguserexperience</title>
+    <link rel="stylesheet" href="styles.css" />
+    <script src="sanity-client.js"></script>
+    <script defer src="scripts.js"></script>
+  
+    <link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+    <meta name="apple-mobile-web-app-title" content="analoguserexperience" />
+    <link rel="manifest" href="/site.webmanifest" />
+  </head>
+  <body>
+    <main class="site-shell">
+      <header class="page-header">
+        <div class="logo-group">
+          <a class="back" href="index.html" aria-label="Back"><img src="/resources/svg/back_arrow-white.svg" alt=""></a>
+          <a href="index.html" class="nav-logo"><img src="/resources/svg/aux_logo-white-full.svg" alt="analoguserexperience"></a>
+          <h1 class="page-title">RSVP</h1>
+        </div>
+      </header>
+
+      <section class="content-void rsvp-event" id="rsvp-invitation">
+        <div class="content-text">
+          <p class="rsvp-event-title">ADE Show Designer Gathering</p>
+
+          <dl class="rsvp-meta">
+            <div class="rsvp-meta-item">
+              <dt>Date</dt>
+              <dd>22 10 26</dd>
+            </div>
+            <div class="rsvp-meta-item">
+              <dt>Time</dt>
+              <dd>15:00 &ndash; 18:00</dd>
+            </div>
+            <div class="rsvp-meta-item">
+              <dt>Location</dt>
+              <dd>
+                Soho House Amsterdam (Canal Room)<br>
+                <a href="https://maps.app.goo.gl/aHZpAhpQhzCeHc4x7" target="_blank" rel="noopener noreferrer">Spuistraat 210, 1012 VT Amsterdam</a>
+              </dd>
+            </div>
+          </dl>
+
+          <p>Join Analog User Experience at Soho House Amsterdam for an industry meetup bringing together show designers, LDs, VJs, set designers, and sound engineers during ADE.</p>
+          <p>Leave the buttons and faders behind for a brief moment to join us for drinks, snacks, and conversations away from the FOH.</p>
+          <p>Artists and artist managers looking to connect with creative and technical crew for future projects are welcome.</p>
+          <p>Please RSVP below to receive a free invitation.</p>
+        </div>
+      </section>
+
+      <section class="content-void rsvp-section" id="rsvp-form-section">
+        <div class="content-text">
+          <p>Fields marked * are required.</p>
+        </div>
+
+        <form
+          id="rsvp-form"
+          class="rsvp-form"
+          action="https://docs.google.com/forms/u/0/d/e/1FAIpQLScxAgybUyef-n65CMYK7pGuVMfSahplQrv7TmfJxyGAiq2JIA/formResponse"
+          method="POST"
+          target="hidden_iframe"
+        >
+          <div class="rsvp-field">
+            <label for="rsvp-email">Email Address *</label>
+            <input type="email" id="rsvp-email" name="entry.903055996" required>
+          </div>
+
+          <div class="rsvp-field">
+            <label for="rsvp-name">Full Name *</label>
+            <input type="text" id="rsvp-name" name="entry.37598435" required>
+          </div>
+
+          <div class="rsvp-field">
+            <label for="rsvp-occupation">Occupation *</label>
+            <input type="text" id="rsvp-occupation" name="entry.915993272" required>
+          </div>
+
+          <div class="rsvp-field">
+            <label for="rsvp-company">Company or current project *</label>
+            <input type="text" id="rsvp-company" name="entry.1931211323" required>
+          </div>
+
+          <div class="rsvp-field">
+            <label for="rsvp-city">City and country of residence (optional)</label>
+            <input type="text" id="rsvp-city" name="entry.1275147404">
+          </div>
+
+          <div class="rsvp-field rsvp-agree">
+            <label>
+              <input type="checkbox" id="rsvp-agree" name="entry.889417370" value="I Agree" required>
+              I hereby agree to receive invitations and other relevant information from info@analoguserexperience.com *
+            </label>
+          </div>
+
+          <button type="submit" class="rsvp-submit">Send RSVP</button>
+          <p id="rsvp-status" class="rsvp-status" role="status" aria-live="polite"></p>
+        </form>
+
+        <iframe name="hidden_iframe" id="hidden_iframe" title="rsvp-response" style="display:none"></iframe>
+      </section>
+
+      <section class="content-void rsvp-success" id="rsvp-success" hidden>
+        <div class="content-text">
+          <p class="rsvp-event-title">RSVP Successfully requested</p>
+        </div>
+      </section>
+
+      <script>
+        (() => {
+          const invitation = document.getElementById('rsvp-invitation');
+          const formSection = document.getElementById('rsvp-form-section');
+          const successSection = document.getElementById('rsvp-success');
+          const form = document.getElementById('rsvp-form');
+          const iframe = document.getElementById('hidden_iframe');
+          const status = document.getElementById('rsvp-status');
+          let submitted = false;
+
+          form.addEventListener('submit', () => {
+            submitted = true;
+            status.textContent = 'Sending…';
+          });
+
+          iframe.addEventListener('load', () => {
+            if (!submitted) return;
+            submitted = false;
+            form.reset();
+            invitation.hidden = true;
+            formSection.hidden = true;
+            successSection.hidden = false;
+          });
+        })();
+      </script>
+    </main>
+  </body>
+</html>

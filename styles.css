@@ -352,6 +352,10 @@ body::before {
   max-width: 1200px;
 }
 
+.content-void[hidden] {
+  display: none;
+}
+
 @media (min-width: 768px) {
   .content-void {
     grid-template-columns: 1fr 2fr;
@@ -384,6 +388,148 @@ body::before {
 }
 .content-text a:hover {
   border-color: var(--ink);
+}
+
+/* RSVP event details */
+.rsvp-event,
+.rsvp-success {
+  grid-template-columns: 1fr;
+  max-width: 60ch;
+}
+
+.rsvp-success .rsvp-event-title {
+  margin: 0;
+}
+
+.rsvp-event-title {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  line-height: 1.2;
+  color: var(--ink);
+  margin: 0 0 2rem;
+}
+
+.rsvp-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin: 0 0 3rem;
+  padding: 1.5rem 0;
+  border-top: var(--line) solid var(--ink-dim);
+  border-bottom: var(--line) solid var(--ink-dim);
+}
+
+.rsvp-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.rsvp-meta-item dt {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+
+.rsvp-meta-item dd {
+  margin: 0;
+  font-size: clamp(1rem, 1.6vw, 1.25rem);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+/* RSVP form */
+.rsvp-section {
+  grid-template-columns: 1fr;
+  max-width: 60ch;
+}
+
+.rsvp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.75rem;
+}
+
+.rsvp-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.rsvp-field label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--ink-dim);
+}
+
+.rsvp-field input[type="email"],
+.rsvp-field input[type="text"] {
+  background: transparent;
+  color: var(--ink);
+  border: none;
+  border-bottom: var(--line) solid var(--ink-dim);
+  padding: 0.5rem 0;
+  font-family: 'Inter', sans-serif;
+  font-size: clamp(1rem, 1.5vw, 1.15rem);
+  outline: none;
+  transition: border-color 0.3s;
+}
+
+.rsvp-field input[type="email"]:focus,
+.rsvp-field input[type="text"]:focus {
+  border-color: var(--ink);
+}
+
+.rsvp-agree label {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  text-transform: none;
+  letter-spacing: normal;
+  font-size: clamp(0.85rem, 1.3vw, 1rem);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.rsvp-agree input[type="checkbox"] {
+  flex: 0 0 auto;
+  width: 1.1rem;
+  height: 1.1rem;
+  margin-top: 0.2rem;
+  accent-color: var(--ink);
+  cursor: pointer;
+}
+
+.rsvp-submit {
+  align-self: flex-start;
+  background: transparent;
+  color: var(--ink);
+  border: var(--line) solid var(--ink);
+  padding: 0.75rem 2rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  transition: background 0.3s, color 0.3s;
+}
+
+.rsvp-submit:hover {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.rsvp-status {
+  min-height: 1.2em;
+  font-size: 0.85rem;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 /* Projects Grid Override */
