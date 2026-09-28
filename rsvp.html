@@ -60,7 +60,6 @@
           class="rsvp-form"
           action="https://docs.google.com/forms/u/0/d/e/1FAIpQLScxAgybUyef-n65CMYK7pGuVMfSahplQrv7TmfJxyGAiq2JIA/formResponse"
           method="POST"
-          target="hidden_iframe"
         >
           <div class="rsvp-field">
             <label for="rsvp-email">Email Address *</label>
@@ -97,8 +96,6 @@
           <button type="submit" class="rsvp-submit">Send RSVP</button>
           <p id="rsvp-status" class="rsvp-status" role="status" aria-live="polite"></p>
         </form>
-
-        <iframe name="hidden_iframe" id="hidden_iframe" title="rsvp-response" style="display:none"></iframe>
       </section>
 
       <section class="content-void rsvp-success" id="rsvp-success" hidden>
@@ -113,22 +110,31 @@
           const formSection = document.getElementById('rsvp-form-section');
           const successSection = document.getElementById('rsvp-success');
           const form = document.getElementById('rsvp-form');
-          const iframe = document.getElementById('hidden_iframe');
           const status = document.getElementById('rsvp-status');
-          let submitted = false;
 
-          form.addEventListener('submit', () => {
-            submitted = true;
+          form.addEventListener('submit', (e) => {
+            e.preventDefault();
             status.textContent = 'Sending…';
-          });
 
-          iframe.addEventListener('load', () => {
-            if (!submitted) return;
-            submitted = false;
-            form.reset();
-            invitation.hidden = true;
-            formSection.hidden = true;
-            successSection.hidden = false;
+            const formData = new FormData(form);
+
+            // Google Forms doesn't send CORS headers, so the response is opaque.
+            // Submitting via fetch (instead of a hidden iframe) avoids the
+            // framing restrictions Google enforces on docs.google.com.
+            fetch(form.action, {
+              method: 'POST',
+              mode: 'no-cors',
+              body: formData,
+            })
+              .then(() => {
+                form.reset();
+                invitation.hidden = true;
+                formSection.hidden = true;
+                successSection.hidden = false;
+              })
+              .catch(() => {
+                status.textContent = 'Something went wrong. Please try again.';
+              });
           });
         })();
       </script>
